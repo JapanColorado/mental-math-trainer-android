@@ -76,7 +76,7 @@ fun PrimaryButton(text: String, modifier: Modifier = Modifier, enabled: Boolean 
         modifier = modifier.height(54.dp),
         enabled = enabled,
         shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Palette.ACCENT, contentColor = Palette.BG),
+        colors = ButtonDefaults.buttonColors(containerColor = Palette.ACCENT, contentColor = Palette.ON_ACCENT),
     ) {
         Text(text, fontWeight = FontWeight.Bold, fontSize = 17.sp)
     }
@@ -101,6 +101,7 @@ fun TagChip(text: String, color: Color = Palette.ACCENT) {
     Text(
         text,
         style = Type.tag,
+        color = if (color == Palette.ACCENT) Palette.ON_ACCENT else Palette.ON_STATUS,
         modifier = Modifier
             .clip(RoundedCornerShape(9.dp))
             .background(color)

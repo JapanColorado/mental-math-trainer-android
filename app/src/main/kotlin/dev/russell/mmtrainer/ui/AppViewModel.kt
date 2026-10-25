@@ -75,6 +75,7 @@ data class TopicDetail(
 data class SettingsData(
     val minutes: Int, val newTopics: Int, val learningLimit: Int, val newCards: Int,
     val autoAdvance: Boolean, val showTargetBar: Boolean, val fontScale: Double, val haptics: Boolean,
+    val dynamicColor: Boolean,
 )
 
 data class SkillRow(val id: String, val name: String, val track: String, val status: SkillStatus, val levelText: String)
@@ -348,6 +349,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
                     store.settingInt(Settings.LEARNING_LIMIT), store.settingInt(Settings.NEW_CARDS),
                     store.settingBool(Settings.AUTO_ADVANCE), store.settingBool(Settings.SHOW_TARGET_BAR),
                     store.settingDouble(Settings.FONT_SCALE), store.settingBool(Settings.HAPTICS),
+                    store.settingBool(Settings.DYNAMIC_COLOR),
                 )
             }
         }
@@ -365,6 +367,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
                 store.setSetting(Settings.SHOW_TARGET_BAR, d.showTargetBar)
                 store.setSetting(Settings.FONT_SCALE, Math.round(d.fontScale * 100) / 100.0)
                 store.setSetting(Settings.HAPTICS, d.haptics)
+                store.setSetting(Settings.DYNAMIC_COLOR, d.dynamicColor)
             }
         }
     }

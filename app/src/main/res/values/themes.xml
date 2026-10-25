@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Framework theme only for the window; all real theming is Compose MaterialTheme. -->
-    <style name="Theme.MentalMath" parent="android:Theme.Material.NoActionBar">
+    <!-- Framework theme only for the window; all real theming is Compose MaterialTheme (Theme.kt). -->
+    <style name="Theme.MentalMath" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
-        <item name="android:statusBarColor">@color/bg</item>
-        <item name="android:navigationBarColor">@color/bg</item>
     </style>
 </resources>

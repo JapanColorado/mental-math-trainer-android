@@ -63,7 +63,7 @@ import kotlinx.coroutines.android.awaitFrame
 
 @Composable
 fun AppRoot(vm: AppViewModel) {
-    MmtTheme(fontScale = (vm.settings?.fontScale ?: 1.0).toFloat()) {
+    MmtTheme(fontScale = (vm.settings?.fontScale ?: 1.0).toFloat(), dynamicColor = vm.settings?.dynamicColor ?: true) {
         Surface(Modifier.fillMaxSize(), color = Palette.BG) {
             val screen = vm.screen
             BackHandler(enabled = screen != Screen.Home) { vm.back() }
@@ -374,7 +374,7 @@ private fun KeyButton(k: String, modifier: Modifier, onKey: (String) -> Unit, la
         modifier = modifier.height(54.dp),
         shape = RoundedCornerShape(10.dp),
         color = if (primary) Palette.ACCENT else Palette.SURFACE_2,
-        contentColor = if (primary) Palette.BG else Palette.TEXT,
+        contentColor = if (primary) Palette.ON_ACCENT else Palette.TEXT,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(text, fontSize = if (text.length > 2) 17.sp else 23.sp,

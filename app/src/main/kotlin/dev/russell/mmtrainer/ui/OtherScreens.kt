@@ -17,14 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -167,6 +164,8 @@ fun Dropdown(options: List<String>, selected: Int, modifier: Modifier = Modifier
     }
 }
 
+private class ChartColors(val grid: Color, val muted: Color, val series: List<Color>)
+
 /** A small line chart over time, as in the desktop's ui/chart.py. */
 @Composable
 fun LineChart(
@@ -177,6 +176,7 @@ fun LineChart(
 ) {
     val measurer = rememberTextMeasurer()
     val shown = series.filter { it.second.isNotEmpty() }
+    val colors = ChartColors(Palette.BORDER, Palette.MUTED, Palette.SERIES)
     CardBox(Modifier.fillMaxWidth()) {
         Text(title, style = Type.muted.copy(color = Palette.TEXT))
         if (shown.size > 1) {
@@ -192,7 +192,7 @@ fun LineChart(
             return@CardBox
         }
         Canvas(Modifier.fillMaxWidth().height(190.dp)) {
-            drawChart(shown, reference, measurer)
+            drawChart(shown, reference, measurer, colors)
         }
     }
 }
@@ -201,8 +201,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawChart(
     series: List<Pair<String, List<Pair<Double, Double>>>>,
     reference: Pair<Double, String>?,
     measurer: TextMeasurer,
+    colors: ChartColors,
 ) {
-    val labelStyle = TextStyle(color = Palette.MUTED, fontSize = 11.sp)
+    val labelStyle = TextStyle(color = colors.muted, fontSize = 11.sp)
     val left = 40.dp.toPx()
     val bottom = 22.dp.toPx()
     val top = 6.dp.toPx()
@@ -225,7 +226,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawChart(
     for (i in 0..4) {
         val y = y0 + (y1 - y0) * i / 4
         val p = px(x0, y)
-        drawLine(Palette.BORDER, Offset(left, p.y), Offset(left + plotW, p.y), 1f)
+        drawLine(colors.grid, Offset(left, p.y), Offset(left + plotW, p.y), 1f)
         val text = if (y1 - y0 >= 8) fmtF(y, 0) else fmtG(y, 3)
         val m = measurer.measure(text, labelStyle)
         drawText(m, topLeft = Offset(left - m.size.width - 6.dp.toPx(), p.y - m.size.height / 2))
@@ -243,12 +244,12 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawChart(
     }
     reference?.let { (ry, rl) ->
         val p = px(x0, ry)
-        drawLine(Palette.MUTED, Offset(left, p.y), Offset(left + plotW, p.y), 1.5f,
+        drawLine(colors.muted, Offset(left, p.y), Offset(left + plotW, p.y), 1.5f,
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)))
         drawText(measurer.measure(rl, labelStyle), topLeft = Offset(left + 4.dp.toPx(), p.y - 16.dp.toPx()))
     }
     series.forEachIndexed { i, (_, s) ->
-        val color: Color = Palette.SERIES[i % Palette.SERIES.size]
+        val color: Color = colors.series[i % colors.series.size]
         val path = Path()
         s.forEachIndexed { j, (x, y) ->
             val p = px(x, y)
@@ -349,7 +350,7 @@ fun PracticeScreen(vm: AppViewModel) {
                     Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                         TriStateCheckbox(state, onClick = {
                             if (state == ToggleableState.On) unchecked.addAll(ids.filter { it !in unchecked }) else unchecked.removeAll(ids)
-                        }, colors = CheckboxDefaults.colors(checkedColor = Palette.ACCENT, checkmarkColor = Palette.BG))
+                        })
                         Text(track, style = Type.h2, color = Palette.ACCENT)
                     }
                 }
@@ -359,7 +360,7 @@ fun PracticeScreen(vm: AppViewModel) {
                     }.padding(start = 24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(r.id !in unchecked, onCheckedChange = {
                             if (it) unchecked.remove(r.id) else unchecked.add(r.id)
-                        }, colors = CheckboxDefaults.colors(checkedColor = Palette.ACCENT, checkmarkColor = Palette.BG))
+                        })
                         Text(r.name, style = Type.body, modifier = Modifier.weight(1f))
                         Text(r.status, style = Type.muted, modifier = Modifier.padding(end = 8.dp))
                     }
@@ -394,11 +395,13 @@ fun SettingsScreen(vm: AppViewModel) {
             Toggle("Move on automatically after a correct answer", s.autoAdvance) { save(s.copy(autoAdvance = it)) }
             Toggle("Show the target-time bar while answering", s.showTargetBar) { save(s.copy(showTargetBar = it)) }
             Toggle("Vibrate on a wrong answer", s.haptics) { save(s.copy(haptics = it)) }
+            if (dynamicColorSupported) {
+                Toggle("Use wallpaper colors (Material You)", s.dynamicColor) { save(s.copy(dynamicColor = it)) }
+            }
             Text("Text size: ${fmtG(s.fontScale, 2)}×", style = Type.body, modifier = Modifier.padding(top = 10.dp))
             var scale by remember { mutableStateOf(s.fontScale.toFloat()) }
             Slider(scale, onValueChange = { scale = it }, valueRange = 0.7f..1.6f, steps = 8,
-                onValueChangeFinished = { save(s.copy(fontScale = Math.round(scale * 10) / 10.0)) },
-                colors = SliderDefaults.colors(thumbColor = Palette.ACCENT, activeTrackColor = Palette.ACCENT))
+                onValueChangeFinished = { save(s.copy(fontScale = Math.round(scale * 10) / 10.0)) })
             Spacer(Modifier.height(20.dp))
             SecondaryButton("Reset all progress…") { confirmReset = true }
             Spacer(Modifier.height(20.dp))
@@ -430,7 +433,6 @@ private fun Stepper(label: String, value: Int, range: IntRange, suffix: String =
 private fun Toggle(label: String, value: Boolean, onChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().clickable { onChange(!value) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = Type.body, modifier = Modifier.weight(1f))
-        Switch(value, onCheckedChange = onChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = Palette.ACCENT, checkedThumbColor = Palette.BG))
+        Switch(value, onCheckedChange = onChange)
     }
 }

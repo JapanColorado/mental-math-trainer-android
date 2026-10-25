@@ -48,6 +48,7 @@ object Settings {
     const val SHOW_TARGET_BAR = "show_target_bar"
     const val FONT_SCALE = "font_scale"
     const val HAPTICS = "haptics"                  // Android only: vibrate on wrong answers
+    const val DYNAMIC_COLOR = "dynamic_color"      // Android only: Material You wallpaper colors
 
     val DEFAULTS: Map<String, JsonPrimitive> = mapOf(
         SESSION_MINUTES to JsonPrimitive(12),
@@ -58,6 +59,7 @@ object Settings {
         SHOW_TARGET_BAR to JsonPrimitive(true),
         FONT_SCALE to JsonPrimitive(1.0),
         HAPTICS to JsonPrimitive(true),
+        DYNAMIC_COLOR to JsonPrimitive(true),
     )
 }
 
