@@ -14,7 +14,12 @@ import json
 import os
 import random
 import sys
+import time
 from pathlib import Path
+
+# Session traces depend on the 4 am day rollover in local time; pin it so fixtures are portable.
+os.environ["TZ"] = "UTC"
+time.tzset()
 
 ROOT = Path(__file__).resolve().parents[2]
 PY_SRC = Path(os.environ.get("MMT_PY_SRC", ROOT.parent / "mental-math-trainer")).resolve()
