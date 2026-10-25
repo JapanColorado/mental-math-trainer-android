@@ -28,6 +28,7 @@ data class Problem(
     val tolRel: Double = 0.0,          // accepted relative error (0.02 == ±2 %)
     val explanation: String = "",      // worked method for THIS problem, 1-3 short lines of rich text
     val hint: String = "",             // answer-format hint shown under the input; auto-derived if empty
+    val mentalEstimate: Double? = null, // value the worked explanation arrives at (logs/powers; tests check it)
 ) {
     fun tolerance(): Double =
         maxOf(tolAbs, tolRel * Math.abs(answer), 1e-9 * maxOf(1.0, Math.abs(answer)))

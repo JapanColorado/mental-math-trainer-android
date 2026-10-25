@@ -7,8 +7,6 @@ import dev.russell.mmtrainer.py.gcd
 import dev.russell.mmtrainer.py.ipow
 import dev.russell.mmtrainer.py.isInteger
 import dev.russell.mmtrainer.py.pyRound
-import java.util.Collections
-import java.util.WeakHashMap
 
 /*
  * Logarithms: exact logs, common logs, powers of ten, natural logs, change of base.
@@ -74,19 +72,11 @@ object Logs : ContentModule {
         return if ("×" in s) "($s)" else s
     }
 
-    private val ESTIMATES: MutableMap<Problem, Double> = Collections.synchronizedMap(WeakHashMap())
-
     /** Record the value the worked explanation arrives at (checked by the tests). */
-    internal fun withEstimate(p: Problem, est: Double): Problem {
-        synchronized(ESTIMATES) {
-            ESTIMATES.remove(p)   // make this instance the (weak) key
-            ESTIMATES[p] = est
-        }
-        return p
-    }
+    internal fun withEstimate(p: Problem, est: Double): Problem = p.copy(mentalEstimate = est)
 
     /** Python's `problem.mental_estimate` (null if the generator didn't record one). */
-    internal fun mentalEstimate(p: Problem): Double? = ESTIMATES[p]
+    internal fun mentalEstimate(p: Problem): Double? = p.mentalEstimate
 
     /** A mantissa in [1, 10) with the given number of significant figures (no trailing 0). */
     internal fun randMantissa(rng: Rng, sigs: List<Int> = listOf(2, 3)): Double {

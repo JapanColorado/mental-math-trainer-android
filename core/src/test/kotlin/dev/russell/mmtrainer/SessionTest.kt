@@ -247,8 +247,9 @@ class SessionTest {
                     val where = "$name $table $er.$col"
                     when {
                         ev is JsonNull -> assertNull(where, av)
-                        col == "details" -> assertEquals(where, Json.parseToJsonElement(ev.jsonPrimitive.content),
-                            Json.parseToJsonElement(av as String))
+                        // Python's json keeps int-valued targets as ints ("6"); compare numbers by value
+                        col == "details" -> assertEquals(where, wholeFloats(Json.parseToJsonElement(ev.jsonPrimitive.content)),
+                            wholeFloats(Json.parseToJsonElement(av as String)))
                         ev.jsonPrimitive.isString -> assertEquals(where, ev.jsonPrimitive.content, av)
                         else -> assertEquals(where, ev.jsonPrimitive.doubleOrNull!!, (av as Number).toDouble(), 1e-9)
                     }
@@ -291,4 +292,7 @@ class SessionTest {
     }
 
     private fun kotlinx.serialization.json.JsonElement.jsonObject() = this as JsonObject
+
+    private fun wholeFloats(e: kotlinx.serialization.json.JsonElement): String =
+        e.toString().replace(Regex("""(?<=[:\[,])(-?\d+)\.0(?=[,}\]])"""), "$1")
 }

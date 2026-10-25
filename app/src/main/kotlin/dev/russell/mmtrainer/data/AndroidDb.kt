@@ -59,7 +59,7 @@ class AndroidDb(context: Context, name: String = "progress.db") : Db {
         val cursor = db.rawQueryWithFactory({ _, driver, table, query ->
             bind(query, args)
             SQLiteCursor(driver, table, query)
-        }, sql, null, null)
+        }, sql, null, "")
         return cursor.use { c ->
             val out = ArrayList<Row>(c.count)
             while (c.moveToNext()) {
