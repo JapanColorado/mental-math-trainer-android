@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MentalMathTrainer"
-include(":core")
+include(":core", ":app")

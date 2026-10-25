@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher glyph: a multiplication sign with a lightning-fast underline, in the app accent. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="#6EA8FE"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M40,36 L68,64 M68,36 L40,64" />
+    <path
+        android:strokeColor="#4CC38A"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M38,76 L70,76" />
+</vector>
