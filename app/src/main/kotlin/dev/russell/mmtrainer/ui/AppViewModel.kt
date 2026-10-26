@@ -490,7 +490,9 @@ class AppViewModel(private val store: Store) : ViewModel() {
         if (busy) return  // an answer is being graded; don't let more typing change what was sent
         warning = null
         when (k) {
-            ENTER -> submit()
+            // Show on a blank answer waits a moment, so a tap meant for the previous question's
+            // Next (or one landing just after an auto-advance) doesn't skip this one.
+            ENTER -> if (input.isNotBlank() || SystemClock.elapsedRealtime() - shownAt >= SHOW_DELAY_MS) submit()
             BACKSPACE -> input = input.dropLast(1)
             CLEAR -> input = ""
             else -> if (input.length < 24) input += k
@@ -582,6 +584,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
         const val ENTER = "\n"
         const val BACKSPACE = "\b"
         const val CLEAR = "\u0018"
+        const val SHOW_DELAY_MS = 500L
 
         fun factory(store: Store) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

@@ -38,10 +38,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -277,6 +291,7 @@ fun DrillScreen(vm: AppViewModel) {
                 vm.input.isBlank() -> "Show"
                 else -> "Enter"
             },
+            enterEnabled = result != null || vm.input.isNotBlank() || elapsed * 1000 >= AppViewModel.SHOW_DELAY_MS,
             onKey = { k ->
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                 vm.key(k)
@@ -338,48 +353,101 @@ private fun Feedback(vm: AppViewModel) {
     }
 }
 
-private val KEYS = listOf(
-    listOf("7", "8", "9", "/", AppViewModel.BACKSPACE),
-    listOf("4", "5", "6", " ", "^"),
-    listOf("1", "2", "3", "−", "e"),
-)
+private val DIGITS = listOf(listOf("7", "8", "9"), listOf("4", "5", "6"), listOf("1", "2", "3"))
+private val SYMBOLS = listOf("/", " ", "^", "e", "−")
+private val KEY_HEIGHT = 72.dp
+private val SYMBOL_HEIGHT = 44.dp
+private val KEY_GAP = 8.dp
 
+/**
+ * A slim row of rarely used symbols over a calculator-style digit block, with ⌫ and a tall Enter
+ * on the right. Keys fire on touch-down; holding ⌫ clears the whole answer.
+ */
 @Composable
-private fun Keypad(enterLabel: String, onKey: (String) -> Unit) {
-    val gap = 6.dp
-    Column(Modifier.fillMaxWidth().padding(top = 6.dp), verticalArrangement = Arrangement.spacedBy(gap)) {
-        for (row in KEYS) {
-            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                for (k in row) KeyButton(k, Modifier.weight(1f), onKey)
-            }
+private fun Keypad(enterLabel: String, enterEnabled: Boolean, onKey: (String) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp), verticalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+            for (k in SYMBOLS) KeyButton(k, Modifier.weight(1f).height(SYMBOL_HEIGHT), onKey, small = true)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
-            KeyButton("0", Modifier.weight(2f), onKey)
-            KeyButton(".", Modifier.weight(1f), onKey)
-            KeyButton(AppViewModel.ENTER, Modifier.weight(2f), onKey, label = enterLabel, primary = true)
+        Row(horizontalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+            Column(Modifier.weight(3f), verticalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+                for (row in DIGITS) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+                        for (k in row) KeyButton(k, Modifier.weight(1f).height(KEY_HEIGHT), onKey)
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+                    KeyButton("0", Modifier.weight(2f).height(KEY_HEIGHT), onKey)
+                    KeyButton(".", Modifier.weight(1f).height(KEY_HEIGHT), onKey)
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+                KeyButton(AppViewModel.BACKSPACE, Modifier.fillMaxWidth().height(KEY_HEIGHT), onKey)
+                KeyButton(AppViewModel.ENTER, Modifier.fillMaxWidth().height(KEY_HEIGHT * 3 + KEY_GAP * 2), onKey,
+                    label = enterLabel, primary = true, enabled = enterEnabled)
+            }
         }
     }
 }
 
 @Composable
-private fun KeyButton(k: String, modifier: Modifier, onKey: (String) -> Unit, label: String? = null, primary: Boolean = false) {
+private fun KeyButton(
+    k: String, modifier: Modifier, onKey: (String) -> Unit,
+    label: String? = null, primary: Boolean = false, small: Boolean = false, enabled: Boolean = true,
+) {
     val text = label ?: when (k) {
         AppViewModel.BACKSPACE -> "⌫"
         " " -> "␣"
         "e" -> "×10ⁿ"
         else -> k
     }
-    Surface(
-        onClick = { onKey(k) },
-        modifier = modifier.height(54.dp),
-        shape = RoundedCornerShape(10.dp),
-        color = if (primary) Palette.ACCENT else Palette.SURFACE_2,
-        contentColor = if (primary) Palette.ON_ACCENT else Palette.TEXT,
+    val spoken = when (k) {
+        AppViewModel.BACKSPACE -> "Backspace"
+        " " -> "Space"
+        "e" -> "Times ten to the power"
+        else -> text
+    }
+    val currentOnKey by rememberUpdatedState(onKey)
+    var pressed by remember { mutableStateOf(false) }
+    val base = if (primary) Palette.ACCENT else if (small) Palette.SURFACE else Palette.SURFACE_2
+    Box(
+        modifier
+            .alpha(if (enabled) 1f else 0.4f)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (pressed) lerp(base, Palette.TEXT, 0.18f) else base)
+            .pointerInput(k) {
+                awaitEachGesture {
+                    awaitFirstDown().consume()
+                    pressed = true
+                    currentOnKey(k)
+                    if (k == AppViewModel.BACKSPACE) {
+                        var held = true
+                        withTimeoutOrNull(450) { waitForUpOrCancellation(); held = false }
+                        if (held) {
+                            currentOnKey(AppViewModel.CLEAR)
+                            waitForUpOrCancellation()
+                        }
+                    } else {
+                        waitForUpOrCancellation()
+                    }
+                    pressed = false
+                }
+            }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = spoken
+                onClick { currentOnKey(k); true }
+            },
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(text, fontSize = if (text.length > 2) 17.sp else 23.sp,
-                fontWeight = if (primary) androidx.compose.ui.text.font.FontWeight.Bold else null)
-        }
+        Text(text,
+            color = if (primary) Palette.ON_ACCENT else Palette.TEXT,
+            fontSize = when {
+                small -> 19.sp
+                text.length > 2 -> 20.sp
+                else -> 32.sp
+            },
+            fontWeight = if (primary) FontWeight.Bold else FontWeight.Medium)
     }
 }
 
