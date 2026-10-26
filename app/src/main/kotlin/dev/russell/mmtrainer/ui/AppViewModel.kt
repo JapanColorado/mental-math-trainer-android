@@ -76,7 +76,7 @@ data class TopicDetail(
 data class SettingsData(
     val minutes: Int, val newTopics: Int, val learningLimit: Int, val newCards: Int,
     val autoAdvance: Boolean, val showTargetBar: Boolean, val fontScale: Double, val haptics: Boolean,
-    val dynamicColor: Boolean,
+    val dynamicColor: Boolean, val autoSubmit: Boolean,
 )
 
 data class SkillRow(val id: String, val name: String, val track: String, val status: SkillStatus, val levelText: String)
@@ -364,7 +364,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
                     store.settingInt(Settings.LEARNING_LIMIT), store.settingInt(Settings.NEW_CARDS),
                     store.settingBool(Settings.AUTO_ADVANCE), store.settingBool(Settings.SHOW_TARGET_BAR),
                     store.settingDouble(Settings.FONT_SCALE), store.settingBool(Settings.HAPTICS),
-                    store.settingBool(Settings.DYNAMIC_COLOR),
+                    store.settingBool(Settings.DYNAMIC_COLOR), store.settingBool(Settings.AUTO_SUBMIT),
                 )
             }
         }
@@ -383,6 +383,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
                 store.setSetting(Settings.FONT_SCALE, Math.round(d.fontScale * 100) / 100.0)
                 store.setSetting(Settings.HAPTICS, d.haptics)
                 store.setSetting(Settings.DYNAMIC_COLOR, d.dynamicColor)
+                store.setSetting(Settings.AUTO_SUBMIT, d.autoSubmit)
             }
         }
     }
@@ -486,6 +487,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
             if (k == ENTER) advance()
             return
         }
+        if (busy) return  // an answer is being graded; don't let more typing change what was sent
         warning = null
         when (k) {
             ENTER -> submit()
@@ -493,6 +495,19 @@ class AppViewModel(private val store: Store) : ViewModel() {
             CLEAR -> input = ""
             else -> if (input.length < 24) input += k
         }
+        if (k != ENTER && k != CLEAR && typedCorrectly()) submit()
+    }
+
+    /**
+     * Auto-submit check. Only exact problems qualify: with a tolerance, a prefix of a wrong answer
+     * can already be within it (4 on the way to 4.5 when the answer is 4.1 ± 5%).
+     */
+    private fun typedCorrectly(): Boolean {
+        val p = item?.problem ?: return false
+        if (settings?.autoSubmit == false || p.tolAbs > 0 || p.tolRel > 0) return false
+        if ("/" in input && item?.sourceId in DECIMAL_ONLY) return false
+        val value = Answers.parse(input) ?: return false
+        return p.isCorrect(value)
     }
 
     private fun submit() {

@@ -393,6 +393,9 @@ fun SettingsScreen(vm: AppViewModel) {
             Stepper("New topics per session", s.newTopics, 0..5) { save(s.copy(newTopics = it)) }
             Stepper("Max topics in learning at once", s.learningLimit, 1..10) { save(s.copy(learningLimit = it)) }
             Stepper("New facts to learn per session", s.newCards, 0..40) { save(s.copy(newCards = it)) }
+            Toggle("Submit automatically once an exact answer is typed correctly", s.autoSubmit) {
+                save(s.copy(autoSubmit = it))
+            }
             Toggle("Move on automatically after a correct answer", s.autoAdvance) { save(s.copy(autoAdvance = it)) }
             Toggle("Show the target-time bar while answering", s.showTargetBar) { save(s.copy(showTargetBar = it)) }
             Toggle("Vibrate on a wrong answer", s.haptics) { save(s.copy(haptics = it)) }
