@@ -74,7 +74,7 @@ private fun appColors(scheme: ColorScheme, dark: Boolean): AppColors {
 
 private val LocalAppColors = staticCompositionLocalOf { appColors(fallbackDark, dark = true) }
 
-/** Current theme colors (formerly the desktop's fixed ui/theme.py palette). */
+/** Current theme colors. */
 object Palette {
     val BG: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.bg
     val SURFACE: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.surface

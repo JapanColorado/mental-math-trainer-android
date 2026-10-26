@@ -10,7 +10,6 @@ import dev.russell.mmtrainer.py.pyRound
 
 /*
  * Logarithms: exact logs, common logs, powers of ten, natural logs, change of base.
- * Port of mmtrainer/content/logs.py.
  *
  * Everything is built from anchors memorized in other decks — log10 of 2…9, log10 e = 0.434,
  * ln 2/3/5/7/10 — plus factoring and a first-order correction:
@@ -75,7 +74,7 @@ object Logs : ContentModule {
     /** Record the value the worked explanation arrives at (checked by the tests). */
     internal fun withEstimate(p: Problem, est: Double): Problem = p.copy(mentalEstimate = est)
 
-    /** Python's `problem.mental_estimate` (null if the generator didn't record one). */
+    /** The recorded mental estimate (null if the generator didn't record one). */
     internal fun mentalEstimate(p: Problem): Double? = p.mentalEstimate
 
     /** A mantissa in [1, 10) with the given number of significant figures (no trailing 0). */
@@ -376,7 +375,7 @@ object Logs : ContentModule {
             r = rng.choice(FRAC_ROOTS.keys.toList())
             p = rng.randint(1, FRAC_ROOTS.getValue(r))
             form = rng.choice(listOf("pow", "pow", "inv", "sqrt"))
-            // Python builds a dict literal here, so all three draws happen whatever the form
+            // all three are drawn whatever the form
             val qPow = rng.randint(1, 8)
             val qInv = -rng.randint(1, 4)
             val qSqrt = rng.choice(listOf(1, 3, 5, 7))

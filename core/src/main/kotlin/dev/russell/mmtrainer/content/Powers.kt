@@ -25,7 +25,7 @@ import dev.russell.mmtrainer.py.pyRound
 import dev.russell.mmtrainer.py.pyStr
 
 /*
- * Exponentials, powers, roots and compound growth. Port of mmtrainer/content/powers.py.
+ * Exponentials, powers, roots and compound growth.
  *
  * Built on the same memorized anchors as Logs (log10 of digits, ln 2/3/5/7/10, e^1…e^5,
  * squares, cubes, powers of 2, √2 √3 √5 √10). As in Logs, every generator records the value

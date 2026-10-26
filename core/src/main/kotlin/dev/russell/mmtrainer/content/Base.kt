@@ -79,8 +79,10 @@ data class Card(
     val tolRel: Double = 0.0,
     val note: String = "",                     // mnemonic / derivation shown when studying or after a miss
     val hint: String = "",
+    val altPrompt: String? = null,             // same fact asked the other way round, e.g. "6 × 2" for "2 × 6"
 ) {
-    fun asProblem() = Problem(prompt, answer, displayAnswer, tolAbs, tolRel, note, hint)
+    fun asProblem(alt: Boolean = false) =
+        Problem(if (alt && altPrompt != null) altPrompt else prompt, answer, displayAnswer, tolAbs, tolRel, note, hint)
 }
 
 class Deck(

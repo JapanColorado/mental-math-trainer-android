@@ -7,8 +7,8 @@ import java.math.RoundingMode
 /*
  * Python semantics the content code relies on, reproduced exactly: float formatting
  * (f"{x:.3f}", f"{x:g}", f"{x:,}", str(x)), round() (half-even on the exact binary value),
- * floor division / modulo, and statistics.median. Every user-facing string in the content
- * modules goes through these, so Kotlin output matches the Python app character for character.
+ * floor division / modulo, and statistics.median. Every user-facing number in the content
+ * modules is formatted through these, so output never depends on the device locale.
  */
 
 private fun isNegative(x: Double) = x < 0 || (x == 0.0 && 1.0 / x < 0)

@@ -215,7 +215,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         screen = Screen.SettingsPage
     }
 
-    /** System back: mirrors the desktop's Esc. Returns false when the app should close. */
+    /** System back. Returns false when the app should close. */
     fun back(): Boolean {
         when (screen) {
             Screen.Home -> return false
@@ -593,7 +593,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         if (result != null) nextItem()
     }
 
-    /** The desktop's F1: read this topic's lesson. Counts as a hint if asked before answering. */
+    /** Read this topic's lesson. Counts as a hint if asked before answering. */
     fun showLesson() {
         val it = item ?: return
         if (result == null) hinted = true
@@ -643,10 +643,10 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
     }
 }
 
-/** Median-style seconds, "4.2 s" (desktop fmt_secs). */
+/** Median-style seconds, "4.2 s". */
 fun fmtSecs(s: Double?): String = if (s == null) "—" else fmtF(s, 1) + " s"
 
-/** Target seconds, "4 s" / "2.5 s" (desktop f"{t:g} s"). */
+/** Target seconds, "4 s" / "2.5 s". */
 fun fmtTarget(s: Double): String = fmtG(s) + " s"
 
 /** f"{x:+.0f}" */

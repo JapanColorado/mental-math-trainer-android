@@ -13,7 +13,7 @@ import dev.russell.mmtrainer.splitStatements
 /**
  * The core's Db over android.database.sqlite. Arguments are bound with their real types
  * (rawQuery would bind everything as text), so REAL/INTEGER comparisons behave exactly as
- * they do in the Python app and the JVM tests.
+ * they do in the JVM tests.
  */
 class AndroidDb(context: Context, name: String = "progress.db") : Db {
     // The Store creates its own schema (CREATE TABLE IF NOT EXISTS), so the helper has nothing to do.

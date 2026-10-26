@@ -1,6 +1,5 @@
 package dev.russell.mmtrainer.content
 
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.py.Fraction
 import dev.russell.mmtrainer.py.Rng
 import org.junit.Assert.assertEquals
@@ -8,7 +7,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Port of tests/test_trig.py. */
 class TrigTest {
     private val n = 300
     private val levels: List<Triple<Skill, Int, Level>> =
@@ -199,9 +197,5 @@ class TrigTest {
                 assertEquals(d, Fraction.of(a, d).den)
             }
         }
-    }
-
-    @Test fun matchesPythonGolden() {
-        assertTrue(Golden.checkModule("trig", Trig) > 0)
     }
 }

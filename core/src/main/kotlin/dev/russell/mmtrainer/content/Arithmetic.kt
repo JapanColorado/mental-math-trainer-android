@@ -11,7 +11,6 @@ import dev.russell.mmtrainer.py.pyRound
  *
  * Every level's generator picks operands and hands them to a pure `*Problem` builder,
  * so explanations (and tests) depend only on the numbers, not on how they were drawn.
- * Port of mmtrainer/content/arithmetic.py.
  */
 object Arithmetic : ContentModule {
     const val TRACK = "arithmetic"

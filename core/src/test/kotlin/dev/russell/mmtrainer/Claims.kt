@@ -5,7 +5,6 @@ import org.junit.Assert.assertTrue
 /*
  * Helpers shared by content tests: parse numbers out of rich text and verify the simple
  * arithmetic claims ("47 × 8 = 376", "3² = 9", "196/560 = 0.35") in explanations.
- * Port of tests/_claims.py.
  */
 object Claims {
     private const val NUM = """\d{1,3}(?: \d{3})*(?:\.\d+)?|\d+(?:\.\d+)?"""

@@ -3,13 +3,6 @@ package dev.russell.mmtrainer
 import dev.russell.mmtrainer.content.Content
 import dev.russell.mmtrainer.py.Rng
 import dev.russell.mmtrainer.py.pyStr
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -21,8 +14,7 @@ class Clock(var t: Double = 1_800_000_000.0) : () -> Double {
     override fun invoke() = t
 }
 
-fun memoryStore(prerequisites: Map<String, List<String>> = Curriculum.PREREQUISITES): Store =
-    Store(JdbcDb(), prerequisites).also { it.now = Clock() }
+fun memoryStore(): Store = Store(JdbcDb()).also { it.now = Clock() }
 
 val Store.clock: Clock get() = now as Clock
 
@@ -46,13 +38,12 @@ fun play(session: Session, answerCorrectly: (Item) -> Boolean = { true }, second
     return Played(lessons, problems, session.finish())
 }
 
-/** Port of tests/test_session.py, plus trace-for-trace parity with the Python session engine. */
 class SessionTest {
     private lateinit var store: Store
 
     @Before
     fun setUp() {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))  // the golden traces were recorded in UTC
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))  // day boundaries (4 am local) at fixed clock times
         store = memoryStore()
     }
 
@@ -197,6 +188,41 @@ class SessionTest {
     }
 
     @Test
+    fun newFactsComeOutOfOrderButEasyFirst() {
+        store.introduce("d_times")
+        val order = Content.DECKS.getValue("d_times").cards.map { it.id }
+        val session = Session(store, Mode.PRACTICE, itemIds = listOf("d_times"), rng = Rng(6))
+        val served = play(session, limit = 30).problems.filter { it.newCard }.map { order.indexOf(it.cardId) }
+        assertEquals(30, served.size)
+        assertTrue(served != served.sorted())
+        for ((k, i) in served.withIndex()) assertTrue("card $i served ${k + 1}th", i < k + NEW_CARD_WINDOW)
+    }
+
+    @Test
+    fun dueReviewsComeInRandomOrder() {
+        store.introduce("d_times")
+        val ids = Content.DECKS.getValue("d_times").cards.take(20).map { it.id }
+        for ((k, id) in ids.withIndex()) {
+            store.db.exec("INSERT INTO cards (id, deck_id, state, ease, interval_days, due_ts) VALUES (?, 'd_times', 'review', 2.5, 1.0, ?)",
+                listOf(id, store.now() - 100 + k))
+        }
+        val session = Session(store, Mode.PRACTICE, itemIds = listOf("d_times"), rng = Rng(8))
+        val served = play(session, limit = 20).problems.map { it.cardId }
+        assertEquals(ids.toSet(), served.toSet())
+        assertTrue(served != ids)
+    }
+
+    @Test
+    fun productsAreAskedBothWaysRound() {
+        store.introduce("d_times")
+        val session = Session(store, Mode.PRACTICE, itemIds = listOf("d_times"), rng = Rng(7))
+        val asked = play(session, limit = 40).problems.map { it.problem!!.prompt to Content.CARDS.getValue(it.cardId!!).second }
+        assertTrue(asked.all { (prompt, card) -> prompt == card.prompt || prompt == card.altPrompt })
+        assertTrue(asked.any { (prompt, card) -> prompt == card.prompt && card.altPrompt != null })
+        assertTrue(asked.any { (prompt, card) -> prompt == card.altPrompt })
+    }
+
+    @Test
     fun cardSrsIntervals() {
         val card = Content.DECKS.getValue("d_pow2").cards[0].id
         store.reviewCard(card, EASY, Rng(0))  // known on first sight
@@ -245,144 +271,4 @@ class SessionTest {
         store.clock.t += 2 * DAY
         assertEquals(0, store.streak())
     }
-
-    // ------------------------------------------------------------ parity with the Python engine
-
-    private class Scenario(
-        val days: Int, val make: (Store, Int) -> Session, val rule: (Int) -> Boolean,
-        val seconds: (Int) -> Double, val limit: Int,
-    )
-
-    private fun daily(seed: Long): (Store, Int) -> Session = { store, day ->
-        Session(store, Mode.DAILY, rng = Rng(seed + day)).also { it.budget = null }
-    }
-
-    private val scenarios = mapOf(
-        "daily_all_correct" to Scenario(1, daily(1), { true }, { 1.0 }, 60),
-        "daily_mixed" to Scenario(1, daily(11), { it % 3 != 0 }, { 1.0 + (it % 5) * 0.7 }, 80),
-        "multi_day" to Scenario(6, daily(21), { (it * 7) % 5 != 0 }, { 0.6 + (it % 7) * 0.9 }, 45),
-        "practice_pow2" to Scenario(1, { s, _ ->
-            s.introduce("d_pow2"); Session(s, Mode.PRACTICE, itemIds = listOf("d_pow2"), rng = Rng(4))
-        }, { it % 4 != 1 }, { 2.0 }, 25),
-        "practice_add" to Scenario(1, { s, _ ->
-            s.introduce("s_add"); Session(s, Mode.PRACTICE, itemIds = listOf("s_add"), rng = Rng(2))
-        }, { true }, { 0.5 }, 30),
-        "benchmark" to Scenario(1, { s, _ -> Session(s, Mode.BENCHMARK, rng = Rng(5)) },
-            { it % 5 != 2 }, { 2.0 + (it % 3) }, 400),
-    )
-
-    @Test
-    fun matchesPythonSessionTraces() {
-        val golden = Golden.load("session").arr("scenarios")
-        assertEquals(scenarios.keys, golden.map { it.obj.str("name") }.toSet())
-        for (gj in golden) {
-            val g = gj.obj
-            val name = g.str("name")
-            val sc = scenarios.getValue(name)
-            val st = memoryStore(prerequisites = emptyMap())  // the Python engine has no prerequisites
-            var counter = 0
-            val gSessions = g.arr("sessions")
-            for (day in 0 until sc.days) {
-                val session = sc.make(st, day)
-                val expected = gSessions[day].obj.arr("items")
-                var k = 0
-                var n = 0
-                while (n < sc.limit) {
-                    val item = session.nextItem() ?: break
-                    val e = expected.getOrNull(k++)?.obj ?: throw AssertionError("$name day $day: extra item $item")
-                    val where = "$name day $day item ${k - 1}"
-                    assertEquals("$where kind", e.str("kind"), item.kind)
-                    assertEquals("$where source", e.str("source"), item.sourceId)
-                    assertEquals("$where title", e.str("title"), item.title)
-                    if (item.isLesson) continue
-                    n++
-                    counter++
-                    val p = item.problem!!
-                    assertEquals("$where card", e.strOrNull("card"), item.cardId)
-                    assertEquals("$where level", e["level"]?.jsonPrimitive?.intOrNull, item.level)
-                    assertEquals("$where tag", e.str("tag"), item.tag)
-                    assertEquals("$where prompt", e.str("prompt"), p.prompt)
-                    assertEquals("$where new_card", e.bool("new_card"), item.newCard)
-                    assertEquals("$where relearn", e.bool("relearn"), item.relearn)
-                    assertEquals("$where target", e.dbl("target"), item.targetSeconds, 0.0)
-                    val ok = sc.rule(counter)
-                    var value: Double? = if (ok) p.answer else p.answer * 3 + 7
-                    val response = if (!ok && counter % 2 == 1) "" else pyStr(value!!)
-                    if (response.isEmpty()) value = null
-                    val secs = sc.seconds(counter)
-                    val r = session.submit(item, response, value, secs)
-                    assertEquals("$where correct", e.bool("correct"), r.correct)
-                    assertEquals("$where promoted", e["promoted_to"]?.jsonPrimitive?.intOrNull, r.promotedTo)
-                }
-                assertEquals("$name day $day: item count", expected.size, k)
-                val summary = session.finish()
-                val gs = gSessions[day].obj
-                assertEquals("$name introduced", gs.arr("introduced").map { it.jsonPrimitive.content }, summary.introduced)
-                assertEquals("$name n_correct", gs.long("n_correct").toInt(), summary.nCorrect)
-                val score = gs.dblOrNull("score")
-                if (score == null) assertNull(summary.score) else assertEquals("$name score", score, summary.score!!, 1e-9)
-                st.clock.t += DAY
-            }
-            checkState(name, g.obj("state"), st)
-        }
-    }
-
-    private fun checkState(name: String, e: JsonObject, st: Store) {
-        fun rows(sql: String) = st.db.query(sql)
-        fun compareRows(table: String, expected: List<JsonObject>, actual: List<Row>) {
-            assertEquals("$name $table count", expected.size, actual.size)
-            for ((er, ar) in expected.zip(actual)) {
-                for ((col, ev) in er) {
-                    val av = ar[col]
-                    val where = "$name $table $er.$col"
-                    when {
-                        ev is JsonNull -> assertNull(where, av)
-                        // Python's json keeps int-valued targets as ints ("6"); compare numbers by value
-                        col == "details" -> assertEquals(where, wholeFloats(Json.parseToJsonElement(ev.jsonPrimitive.content)),
-                            wholeFloats(Json.parseToJsonElement(av as String)))
-                        ev.jsonPrimitive.isString -> assertEquals(where, ev.jsonPrimitive.content, av)
-                        else -> assertEquals(where, ev.jsonPrimitive.doubleOrNull!!, (av as Number).toDouble(), 1e-9)
-                    }
-                }
-            }
-        }
-        compareRows("items", e.arr("items").map { it.obj },
-            rows("SELECT id, kind, introduced_ts, level, interval_days, due_ts FROM items ORDER BY id"))
-        compareRows("cards", e.arr("cards").map { it.obj },
-            rows("SELECT id, deck_id, state, ease, interval_days, due_ts, reps, lapses, last_ts FROM cards ORDER BY id"))
-        compareRows("sessions", e.arr("sessions").map { it.obj },
-            rows("SELECT id, mode, start_ts, end_ts, n, n_correct, score, details FROM sessions ORDER BY id"))
-        assertEquals("$name streak", e.long("streak").toInt(), st.streak())
-        for ((sid, sj) in e.obj("skill_status")) {
-            val s = sj.jsonObject()
-            val a = st.skillStatus(sid)
-            assertEquals("$name $sid level", s.long("level").toInt(), a.level)
-            assertEquals("$name $sid n_recent", s.long("n_recent").toInt(), a.nRecent)
-            assertEquals("$name $sid mastered", s.bool("mastered"), a.mastered)
-            assertEquals("$name $sid due", s.bool("due"), a.due)
-            assertEquals("$name $sid progress", s.dbl("progress"), a.progress, 1e-9)
-            assertEquals("$name $sid accuracy", s.dblOrNull("accuracy"), a.accuracy)
-            s.dblOrNull("median_s")?.let { assertEquals("$name $sid median", it, a.medianS!!, 1e-9) }
-        }
-        for ((did, dj) in e.obj("deck_stats")) {
-            val d = dj.jsonObject()
-            val a = st.deckStats(did)
-            assertEquals("$name $did stats", listOf("total", "seen", "learning", "mature", "due").map { d.long(it).toInt() },
-                listOf(a.total, a.seen, a.learning, a.mature, a.due))
-        }
-        val pace = e.arr("daily_pace").map { it.jsonArray.map { v -> v.jsonPrimitive.doubleOrNull!! } }
-        val actualPace = st.dailyPace()
-        assertEquals("$name pace days", pace.size, actualPace.size)
-        for ((p, a) in pace.zip(actualPace)) {
-            assertEquals(p[0], a.day, 1e-9); assertEquals(p[1], a.pace, 1e-9); assertEquals(p[2], a.accuracy, 1e-9)
-        }
-        assertEquals("$name due cards", e.arr("due_cards").map { it.jsonPrimitive.content }, st.dueCards())
-        assertEquals("$name next", e.strOrNull("next_to_introduce"), st.nextToIntroduce())
-        assertEquals("$name load", e.long("learning_load").toInt(), st.learningLoad())
-    }
-
-    private fun kotlinx.serialization.json.JsonElement.jsonObject() = this as JsonObject
-
-    private fun wholeFloats(e: kotlinx.serialization.json.JsonElement): String =
-        e.toString().replace(Regex("""(?<=[:\[,])(-?\d+)\.0(?=[,}\]])"""), "$1")
 }

@@ -9,7 +9,6 @@ import dev.russell.mmtrainer.py.pyRound
 
 /*
  * Trigonometry track: degree/radian conversion, trig values, small angles, inverse trig.
- * Port of mmtrainer/content/trig.py.
  *
  * Explanations lean on the memorized anchors (special angles, 15°/75°, 1 rad = 57.3°,
  * 0.01745 rad per degree) and end with the mental estimate in bold.
@@ -126,7 +125,7 @@ object Trig : ContentModule {
         270 to "3π/2", 300 to "5π/3", 315 to "7π/4", 330 to "11π/6", 360 to "2π")
 
     fun degToRad(deg: Int): Problem {
-        val a = DEG_ANCHORS.keys.minBy { Math.abs(deg - it) }  // first of equals, like Python's min
+        val a = DEG_ANCHORS.keys.minBy { Math.abs(deg - it) }  // first of equals
         val dd = deg - a
         val ans = deg * RAD_PER_DEG
         val dr = Math.abs(dd) * RAD_PER_DEG

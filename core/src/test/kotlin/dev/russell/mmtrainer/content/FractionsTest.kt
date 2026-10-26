@@ -5,7 +5,6 @@ import dev.russell.mmtrainer.Claims.checkClaims
 import dev.russell.mmtrainer.Claims.numbers
 import dev.russell.mmtrainer.Claims.plain
 import dev.russell.mmtrainer.Claims.readable
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.content.Fractions.SKILLS
 import dev.russell.mmtrainer.content.Fractions.fracProblem
 import dev.russell.mmtrainer.content.Fractions.pctChangeProblem
@@ -21,7 +20,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Port of tests/test_fractions.py. */
 class FractionsTest {
     private val nSamples = 300
 
@@ -200,6 +198,4 @@ class FractionsTest {
         p = reverseProblem(Fraction.of(20), false, 96)
         assertTrue(p.answer == 120.0 && "5/4" in p.explanation)
     }
-
-    @Test fun matchesPythonGolden() { assertTrue(Golden.checkModule("fractions", Fractions) > 0) }
 }

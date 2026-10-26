@@ -1,14 +1,12 @@
 package dev.russell.mmtrainer.content
 
 import dev.russell.mmtrainer.Answers
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.py.Rng
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Port of tests/test_estimation.py. */
 class EstimationTest {
     private val n = 300
     private val skills = Estimation.SKILLS
@@ -39,7 +37,7 @@ class EstimationTest {
         return ExprParser(s).parse()
     }
 
-    /** Tiny evaluator for the arithmetic subset of Python used by promptValue. */
+    /** Tiny evaluator for the arithmetic expressions built by promptValue. */
     private class ExprParser(private val s: String) {
         private var pos = 0
 
@@ -221,10 +219,5 @@ class EstimationTest {
                 assertNotNull(example, Answers.parse(example))
             }
         }
-    }
-
-    @Test
-    fun matchesPythonGolden() {
-        assertTrue(Golden.checkModule("estimation", Estimation) > 0)
     }
 }

@@ -21,12 +21,15 @@ import kotlinx.serialization.json.put
  *   2. Everything else is *interleaved*: due fact reviews, new facts (first shown as a
  *      retrieval attempt — if you already know it, it skips straight to long intervals),
  *      and skill problems weighted towards skills that are due, weak or new. The same topic
- *      never appears twice in a row, and missed facts come back a few items later.
+ *      never appears twice in a row, and missed facts come back a few items later. Facts come
+ *      in random order (new ones from a small window of the next unseen cards), and products
+ *      are asked both ways round, so no answer can be read off the one before.
  *   3. Stops once the time budget is used and every missed fact has been answered again.
  */
 
 const val BLOCKED_PROBLEMS = 5     // problems in the focused run right after a skill's lesson
 const val BLOCKED_CARDS = 6        // new facts presented back to back right after a deck's lesson
+const val NEW_CARD_WINDOW = 10     // new facts are drawn at random from this many next unseen cards of a deck
 const val MAX_NEW_EXPOSURES = 40   // hard cap on new-card exposures per session
 const val OVERTIME = 180.0         // seconds allowed past the budget to finish relearning missed facts
 
@@ -178,7 +181,8 @@ class Session(
         val (deck, card) = Content.CARDS.getValue(cardId)
         val new = store.cardRow(cardId) == null
         if (new) newExposures += 1
-        return Item("problem", deck.id, deck.name, problem = card.asProblem(), cardId = cardId,
+        val alt = card.altPrompt != null && rng.random() < 0.5  // ask 6 × 2 as well as 2 × 6
+        return Item("problem", deck.id, deck.name, problem = card.asProblem(alt), cardId = cardId,
             targetSeconds = deck.targetSeconds, newCard = new, relearn = relearn,
             tag = tag.ifEmpty { if (new) "New fact" else if (relearn) "Again" else "Review" })
     }
@@ -205,7 +209,8 @@ class Session(
                 .map { k -> skillItem(itemId, 0, "Learning ${k + 1}/$BLOCKED_PROBLEMS") }.toMutableList()
         } else {
             deckIds += itemId
-            val cards = store.unseenCards(itemId).take(BLOCKED_CARDS)
+            val cards = store.unseenCards(itemId).take(NEW_CARD_WINDOW).toMutableList()
+                .also { rng.shuffle(it) }.take(BLOCKED_CARDS)
             blocked = cards.map { cardItem(it, tag = "New fact") }.toMutableList()
             servedCards += cards
         }
@@ -279,13 +284,12 @@ class Session(
         val due = store.dueCards(deckIds).filter { it !in servedCards && it !in pending }
         if (due.isNotEmpty()) {
             val preferred = due.filter { Content.CARDS.getValue(it).first.id !in avoid }
-            return preferred.ifEmpty { due }[0]
+            return rng.choice(preferred.ifEmpty { due })  // random order, so one answer doesn't cue the next
         }
         if (newLearned >= store.settingInt(Settings.NEW_CARDS) || newExposures >= MAX_NEW_EXPOSURES) return null
-        for (deckId in deckIds) {  // earliest introduced deck first
-            for (c in store.unseenCards(deckId)) {
-                if (c !in servedCards) return c
-            }
+        for (deckId in deckIds) {  // earliest introduced deck first; easy facts first, but not in sequence
+            val unseen = store.unseenCards(deckId).filter { it !in servedCards }
+            if (unseen.isNotEmpty()) return rng.choice(unseen.take(NEW_CARD_WINDOW))
         }
         return null
     }

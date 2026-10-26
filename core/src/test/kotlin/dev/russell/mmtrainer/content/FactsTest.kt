@@ -1,7 +1,6 @@
 package dev.russell.mmtrainer.content
 
 import dev.russell.mmtrainer.Answers
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.py.pyRound
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -9,7 +8,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Port of tests/test_facts.py. */
 class FactsTest {
     private val DECK_IDS = listOf("d_times", "d_teens", "d_squares", "d_cubes", "d_pow2", "d_powers", "d_recip",
         "d_log10", "d_ln", "d_exp", "d_consts", "d_trig")
@@ -27,11 +25,6 @@ class FactsTest {
         Math.abs(actual - expected) <= maxOf(rel * Math.abs(expected), 1e-12)
 
     private fun card(cid: String) = ALL_CARDS.first { it.id == cid }
-
-    @Test
-    fun matchesPythonGolden() {
-        assertTrue(Golden.checkModule("facts", Facts) > 0)
-    }
 
     @Test
     fun deckIdsAndMetadata() {
@@ -81,6 +74,14 @@ class FactsTest {
         assertTrue(times.size == 55 && times.all { (a, b) -> a <= b })
         assertFalse(times.any { pair -> pair.any { it == 1 || it == 10 } })
         assertEquals(9 * 8, deck("d_teens").cards.size)
+        for (c in deck("d_times").cards + deck("d_teens").cards) {  // asked both ways round, except squares
+            val (a, b) = c.prompt.split(" × ")
+            assertEquals(c.id, if (a == b) null else "$b × $a", c.altPrompt)
+            assertEquals(c.altPrompt ?: c.prompt, c.asProblem(alt = true).prompt)
+        }
+        for (d in Facts.DECKS.filter { it.id != "d_times" && it.id != "d_teens" }) {
+            assertTrue(d.id, d.cards.all { it.altPrompt == null })
+        }
         for (c in deck("d_squares").cards) {
             val n = c.prompt.trimEnd('²').toInt()
             assertTrue(c.answer == (n * n).toDouble() && (n * n).toString() in c.note)

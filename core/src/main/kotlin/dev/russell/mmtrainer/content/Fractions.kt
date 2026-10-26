@@ -9,7 +9,6 @@ import dev.russell.mmtrainer.py.pyRound
 
 /*
  * Fractions & percents track: fraction → decimal conversion and percentages.
- * Port of mmtrainer/content/fractions.py.
  *
  * As in Arithmetic.kt, generators only pick the numbers; pure *Problem builders turn them
  * into Problems so explanations and tests depend only on the operands.

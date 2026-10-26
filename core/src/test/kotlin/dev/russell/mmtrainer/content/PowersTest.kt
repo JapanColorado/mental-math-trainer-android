@@ -1,6 +1,5 @@
 package dev.russell.mmtrainer.content
 
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.py.Fraction
 import dev.russell.mmtrainer.py.Rng
 import dev.russell.mmtrainer.py.isInteger
@@ -11,7 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 
-/** Port of tests/test_powers.py. */
 class PowersTest {
     private val n = 300
     private val levels: List<Triple<Skill, Int, Level>> =
@@ -219,9 +217,5 @@ class PowersTest {
         // 13³ = 169 × 13 = 1 690 + 507
         assertTrue("169 × 13 = 1 690 + 507" in Powers.splitExpl(13, 3).replace(" ", " "))
         assertTrue(approx(Powers.eHalf(3.5).first, 20.09 * 1.649))
-    }
-
-    @Test fun matchesPythonGolden() {
-        assertTrue(Golden.checkModule("powers", Powers) > 0)
     }
 }

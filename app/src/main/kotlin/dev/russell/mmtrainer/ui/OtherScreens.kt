@@ -166,7 +166,7 @@ fun Dropdown(options: List<String>, selected: Int, modifier: Modifier = Modifier
 
 private class ChartColors(val grid: Color, val muted: Color, val series: List<Color>)
 
-/** A small line chart over time, as in the desktop's ui/chart.py. */
+/** A small line chart over time. */
 @Composable
 fun LineChart(
     title: String,

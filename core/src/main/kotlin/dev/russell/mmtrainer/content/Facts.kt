@@ -11,8 +11,6 @@ import dev.russell.mmtrainer.py.pyRound
  * Times tables, squares, cubes, powers, reciprocals, logarithms, exponentials,
  * constants and special-angle trig values. Each card carries a short note: a
  * mnemonic or a derivation from facts the learner already knows.
- *
- * Port of mmtrainer/content/facts.py.
  */
 object Facts : ContentModule {
     private data class R4(val id: String, val label: String, val value: Double, val note: String)
@@ -39,8 +37,12 @@ object Facts : ContentModule {
     /** Integers: group thousands only from 5 digits up (1024, but 65 536). */
     private fun intStr(n: Long): String = if (Math.abs(n) < 10_000) n.toString() else fmtNum(n)
 
-    private fun intCard(cid: String, prompt: String, value: Long, note: String) =
-        Card(cid, prompt, value.toDouble(), intStr(value), note = note)
+    private fun intCard(cid: String, prompt: String, value: Long, note: String, altPrompt: String? = null) =
+        Card(cid, prompt, value.toDouble(), intStr(value), note = note, altPrompt = altPrompt)
+
+    /** a × b, also asked as b × a. */
+    private fun productCard(cid: String, a: Int, b: Int, note: String) =
+        intCard(cid, "$a × $b", (a * b).toLong(), note, if (a != b) "$b × $a" else null)
 
     // ---------------------------------------------------------------- times tables
 
@@ -80,7 +82,7 @@ object Facts : ContentModule {
     }
 
     private val TIMES_CARDS: List<Card> = TIMES_FACTORS.withIndex().flatMap { (i, a) ->
-        TIMES_FACTORS.drop(i).map { b -> intCard("times:${a}x$b", "$a × $b", (a * b).toLong(), timesNote(a, b)) }
+        TIMES_FACTORS.drop(i).map { b -> productCard("times:${a}x$b", a, b, timesNote(a, b)) }
     }
 
     // ---------------------------------------------------------------- teens × 1-digit
@@ -95,7 +97,7 @@ object Facts : ContentModule {
     }
 
     private val TEENS_CARDS: List<Card> = (11 until 20).flatMap { n ->
-        (2 until 10).map { m -> intCard("teens:${n}x$m", "$n × $m", (n * m).toLong(), teensNote(n, m)) }
+        (2 until 10).map { m -> productCard("teens:${n}x$m", n, m, teensNote(n, m)) }
     }
 
     // ---------------------------------------------------------------- squares 11–30

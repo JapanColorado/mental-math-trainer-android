@@ -1,6 +1,6 @@
 [workspace]
 name = "mental-math-trainer-android"
-description = "Android port (Kotlin, Jetpack Compose) of the Mental Math Trainer desktop app"
+description = "Mental Math Trainer for Android (Kotlin, Jetpack Compose)"
 authors = ["JapanColorado <japancolorado@duck.com>"]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
@@ -10,8 +10,6 @@ platforms = ["linux-64"]
 gradle = ">=8.11"
 # Gradle 8.11 cannot run on the JDK 25 that conda-forge gradle otherwise pulls in.
 openjdk = "21.*"
-# Only for regenerating the golden fixtures from the Python reference implementation.
-python = "3.12.*"
 
 [activation.env]
 ANDROID_HOME = "/home/russell/Android/Sdk"
@@ -29,7 +27,6 @@ clean = { cmd = "./gradlew clean", description = "Delete all Gradle build output
 # Verification
 test = { cmd = "./gradlew :core:test", description = "Run the core JVM tests (content, store, session)" }
 lint = { cmd = "./gradlew lintDebug", description = "Run Android lint on the debug variant" }
-golden = { cmd = "python -I tools/golden/dump_golden.py", description = "Regenerate golden fixtures from the Python app (MMT_PY_SRC, default ../mental-math-trainer)" }
 
 # Device inspection
 logs = { cmd = "adb logcat -s MMTrainer:*", description = "Filtered logcat" }

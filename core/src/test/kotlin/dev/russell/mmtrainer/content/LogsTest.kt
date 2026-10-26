@@ -1,6 +1,5 @@
 package dev.russell.mmtrainer.content
 
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.py.Rng
 import dev.russell.mmtrainer.py.isInteger
 import dev.russell.mmtrainer.py.pyRound
@@ -10,7 +9,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Port of tests/test_logs.py. */
 class LogsTest {
     private val n = 300
     private val levels: List<Triple<Skill, Int, Level>> =
@@ -223,9 +221,5 @@ class LogsTest {
                 assertEquals("fraction or decimal", p.hint)
             }
         }
-    }
-
-    @Test fun matchesPythonGolden() {
-        assertTrue(Golden.checkModule("logs", Logs) > 0)
     }
 }

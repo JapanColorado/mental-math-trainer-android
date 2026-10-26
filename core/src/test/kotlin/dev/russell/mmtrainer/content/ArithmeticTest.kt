@@ -5,7 +5,6 @@ import dev.russell.mmtrainer.Claims.checkClaims
 import dev.russell.mmtrainer.Claims.numbers
 import dev.russell.mmtrainer.Claims.plain
 import dev.russell.mmtrainer.Claims.readable
-import dev.russell.mmtrainer.Golden
 import dev.russell.mmtrainer.content.Arithmetic.SKILLS
 import dev.russell.mmtrainer.content.Arithmetic.addProblem
 import dev.russell.mmtrainer.content.Arithmetic.divApproxProblem
@@ -21,7 +20,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Port of tests/test_arithmetic.py. */
 class ArithmeticTest {
     private val nSamples = 300
 
@@ -36,8 +34,6 @@ class ArithmeticTest {
 
     private fun approx(got: Double, want: Double, rel: Double = 1e-12) =
         Math.abs(got - want) <= maxOf(rel * Math.abs(want), 1e-12)
-
-    @Test fun matchesPythonGolden() { assertTrue(Golden.checkModule("arithmetic", Arithmetic) > 0) }
 
     @Test fun skillIdsAndShape() {
         assertEquals(listOf("s_add", "s_sub", "s_mul1", "s_mul2", "s_square", "s_div"), SKILLS.map { it.id })

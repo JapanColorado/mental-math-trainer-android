@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** The desktop's QFrame#card: a rounded surface with a hairline border. */
+/** A rounded surface with a hairline border. */
 @Composable
 fun CardBox(modifier: Modifier = Modifier, border: Color = Palette.BORDER, content: @Composable ColumnScope.() -> Unit) {
     Column(

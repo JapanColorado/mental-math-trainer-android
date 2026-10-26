@@ -9,7 +9,6 @@ import dev.russell.mmtrainer.py.pyRound
 
 /*
  * Estimation track: scientific notation, fast (Fermi-style) estimation, reciprocals.
- * Port of mmtrainer/content/estimation.py.
  *
  * Generators draw operands and hand them to pure builders, so the explanations depend only on
  * the numbers. Explanations always end with the mental estimate in bold, which the tests check
@@ -86,7 +85,7 @@ object Estimation : ContentModule {
 
     private fun pct(p: Double): String = (if (p >= 0) "+" else "−") + fmtF(Math.abs(p) * 100, 1) + "%"
 
-    /** Python 3.12+ sum() of floats (Neumaier compensated summation). */
+    /** Sum of floats with Neumaier compensated summation. */
     private fun pySum(xs: List<Double>): Double {
         var f = 0.0
         var c = 0.0
@@ -297,7 +296,7 @@ object Estimation : ContentModule {
         val divide = rng.random() < 0.7
         val vals = MutableList(n) { messy(rng, -3, 3) }
         if (vals.all { it >= 1 }) {  // make sure a decimal appears
-            // Python evaluates the right-hand side before the subscript.
+            // the value is drawn before the index
             val v = messy(rng, -3, -1)
             vals[rng.randrange(n)] = v
         }
@@ -444,7 +443,7 @@ object Estimation : ContentModule {
 
     val NICE: Map<Int, String> = niceReciprocals()
 
-    /** Python str.rsplit(" ", 2)[0]. */
+    /** [s] without its last two space-separated words (or its only one). */
     private fun rsplit2Head(s: String): String {
         val i1 = s.lastIndexOf(' ')
         if (i1 < 0) return s

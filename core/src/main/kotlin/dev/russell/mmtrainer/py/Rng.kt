@@ -2,9 +2,8 @@ package dev.russell.mmtrainer.py
 
 /**
  * A bit-for-bit port of CPython's `random.Random` (MT19937 plus the 3.12 algorithms for
- * randrange/randint/choice/shuffle/uniform/choices). With the same integer seed it yields
- * exactly the same sequence as the Python reference app, which is what lets the golden
- * tests compare generated problems one-to-one.
+ * randrange/randint/choice/shuffle/uniform/choices). The same integer seed always yields
+ * the same sequence, which keeps seeded tests reproducible.
  */
 class Rng(seed: Long = System.nanoTime() xor seedUniquifier()) {
     private val mt = LongArray(N)
