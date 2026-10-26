@@ -3,7 +3,8 @@
 A Kotlin / Jetpack Compose port of the [Mental Math Trainer](../mental-math-trainer) desktop app,
 for daily practice on a phone: spaced-repetition anchor facts, short technique lessons,
 interleaved timed drills from times tables up to logs, roots, trig and Fermi estimates,
-a weekly benchmark, and progress charts. Progress is local to the phone.
+a weekly benchmark, progress charts, and audio practice (problems read aloud by the system
+text-to-speech engine, answers typed). Progress is local to the phone.
 
 ## Build and install
 
@@ -29,8 +30,9 @@ core/      pure-Kotlin JVM module, a line-for-line port of the Python logic
   Store.kt     SQLite persistence (behind the Db interface), spaced repetition, level promotion
   Session.kt   what to show next: lessons, blocked runs, interleaving, relearning
   Answers.kt   parsing typed answers
+  Speech.kt    rich-text prompts as plain English for text-to-speech
 app/       Android UI (Compose): home, lesson, drill with a custom keypad, summary,
-           progress charts, library, free practice, settings
+           progress charts, library, free/audio practice, settings; audio/Speaker.kt wraps TextToSpeech
 tools/golden/dump_golden.py   records fixtures from the Python app
 ```
 

@@ -328,12 +328,17 @@ fun TopicScreen(itemId: String, vm: AppViewModel) {
 // ====================================================================== Free practice
 
 @Composable
-fun PracticeScreen(vm: AppViewModel) {
+fun PracticeScreen(audio: Boolean, vm: AppViewModel) {
     val tracks = vm.practiceRows
     var duration by rememberSaveable { mutableIntStateOf(1) }
     val unchecked = remember { mutableStateListOf<String>() }
     Column(Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
-        TopBar("Free practice", onBack = vm::goHome)
+        TopBar(if (audio) "Audio practice" else "Free practice", onBack = vm::goHome)
+        if (audio) {
+            Text("Each problem is read aloud instead of shown; type the answer. The clock starts as the last " +
+                "word is said. Voice and speed follow the system's text-to-speech settings.",
+                style = Type.muted, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+        }
         Text("Choose topics to mix. Fact decks review due/new facts first, then random ones.",
             style = Type.muted, modifier = Modifier.padding(horizontal = 8.dp))
         if (tracks == null) return@Column
@@ -372,7 +377,7 @@ fun PracticeScreen(vm: AppViewModel) {
             Dropdown(DURATIONS.map { it.first }, duration, Modifier.weight(1f)) { duration = it }
             val ids = tracks.flatMap { it.second }.map { it.id }.filter { it !in unchecked }
             PrimaryButton("Start", Modifier.weight(1f), enabled = ids.isNotEmpty()) {
-                vm.startPractice(ids, DURATIONS[duration].second)
+                vm.startPractice(ids, DURATIONS[duration].second, audio)
             }
         }
     }

@@ -159,6 +159,25 @@ class SessionTest {
     }
 
     @Test
+    fun audioSessionsAreTagged() {
+        store.introduce("s_add")
+        Session(store, Mode.PRACTICE, itemIds = listOf("s_add"), rng = Rng(2))
+        Session(store, Mode.PRACTICE, itemIds = listOf("s_add"), audio = true, rng = Rng(2))
+        assertEquals(listOf(0L, 1L), store.db.query("SELECT audio FROM sessions ORDER BY id").map { it.long("audio") })
+    }
+
+    @Test
+    fun addsAudioColumnToOldDatabases() {
+        val db = JdbcDb()
+        db.exec("CREATE TABLE sessions (id INTEGER PRIMARY KEY, mode TEXT NOT NULL, start_ts REAL NOT NULL," +
+            " end_ts REAL, n INTEGER DEFAULT 0, n_correct INTEGER DEFAULT 0, score REAL, details TEXT)")
+        db.exec("INSERT INTO sessions (mode, start_ts) VALUES ('daily', 1)")
+        Store(db)
+        Store(db)  // reopening doesn't try to add it twice
+        assertEquals(0L, db.query("SELECT audio FROM sessions").single().long("audio"))
+    }
+
+    @Test
     fun slowAnswersDoNotPromote() {
         store.introduce("s_add")
         val target = Content.SKILLS.getValue("s_add").levels[0].targetSeconds

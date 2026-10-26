@@ -3,6 +3,13 @@
 
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- Android 11+ package visibility: lets TextToSpeech find the installed engine (audio practice) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".MmtApp"
         android:label="@string/app_name"

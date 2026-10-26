@@ -92,6 +92,7 @@ class Session(
     val mode: Mode = Mode.DAILY,
     minutes: Double? = null,
     itemIds: List<String>? = null,
+    val audio: Boolean = false,                             // Android only: problems are read aloud
     val rng: Rng = Rng(),
     private val clock: () -> Double = { System.nanoTime() / 1e9 },
 ) {
@@ -122,7 +123,7 @@ class Session(
 
     init {
         if (mode == Mode.DAILY && minutes == null) budget = store.settingInt(Settings.SESSION_MINUTES) * 60.0
-        sessionId = store.startSession(mode.id)
+        sessionId = store.startSession(mode.id, audio)
         when (mode) {
             Mode.BENCHMARK -> {
                 val battery = mutableListOf<Pair<String, Int>>()

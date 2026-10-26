@@ -115,7 +115,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     n INTEGER DEFAULT 0,
     n_correct INTEGER DEFAULT 0,
     score REAL,
-    details TEXT
+    details TEXT,
+    audio INTEGER NOT NULL DEFAULT 0    -- Android only: problems were read aloud (audio practice)
 );
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 """
@@ -166,6 +167,9 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
 
     init {
         db.exec(SCHEMA)
+        if (db.query("PRAGMA table_info(sessions)").none { it.string("name") == "audio" }) {
+            db.exec("ALTER TABLE sessions ADD COLUMN audio INTEGER NOT NULL DEFAULT 0")  // databases from before audio practice
+        }
     }
 
     // ------------------------------------------------------------ settings
@@ -436,8 +440,8 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
 
     // ------------------------------------------------------------ sessions
 
-    fun startSession(mode: String): Long =
-        db.insert("INSERT INTO sessions (mode, start_ts) VALUES (?, ?)", listOf(mode, now()))
+    fun startSession(mode: String, audio: Boolean = false): Long =
+        db.insert("INSERT INTO sessions (mode, start_ts, audio) VALUES (?, ?, ?)", listOf(mode, now(), audio))
 
     fun endSession(sessionId: Long, n: Int, nCorrect: Int, score: Double? = null, details: String? = null) {
         db.exec("UPDATE sessions SET end_ts=?, n=?, n_correct=?, score=?, details=? WHERE id=?",

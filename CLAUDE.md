@@ -52,6 +52,8 @@ through pixi too, so it gets that environment.
 - Deliberate divergences: topic prerequisites (`Curriculum.PREREQUISITES`, `Store.prerequisiteMet`) exist
   only here. The session-trace parity test builds its Store with an empty prerequisite map, so
   everything else still matches Python exactly; the gating has its own tests in `SessionTest`.
-  The `haptics`, `dynamic_color` and `auto_submit` settings are also Android-only.
+  The `haptics`, `dynamic_color` and `auto_submit` settings are also Android-only, as is audio practice:
+  `Speech.speakable` (spoken form of prompts; `SpeechTest` checks every generator's output reads as plain
+  words) and the `sessions.audio` column, added by `ALTER TABLE` for older databases.
 - Helpers in content objects stay private (or `internal` when shared, e.g. `Logs` → `Powers`). All
   content files share one package.

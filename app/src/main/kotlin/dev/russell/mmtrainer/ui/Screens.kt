@@ -5,6 +5,7 @@ import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,13 +16,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -90,7 +94,7 @@ fun AppRoot(vm: AppViewModel) {
                     Screen.Progress -> ProgressScreen(vm)
                     Screen.Library -> LibraryScreen(vm)
                     is Screen.Topic -> TopicScreen(screen.itemId, vm)
-                    Screen.Practice -> PracticeScreen(vm)
+                    is Screen.Practice -> PracticeScreen(screen.audio, vm)
                     Screen.SettingsPage -> SettingsScreen(vm)
                 }
             }
@@ -158,10 +162,13 @@ fun HomeScreen(vm: AppViewModel) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SecondaryButton("Free practice", Modifier.weight(1f)) { vm.openPractice() }
-                SecondaryButton("Benchmark", Modifier.weight(1f)) { vm.startBenchmark() }
+                SecondaryButton("Audio practice", Modifier.weight(1f)) { vm.openPractice(audio = true) }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SecondaryButton("Benchmark", Modifier.weight(1f)) { vm.startBenchmark() }
                 SecondaryButton("Progress", Modifier.weight(1f)) { vm.openProgress() }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SecondaryButton("Library", Modifier.weight(1f)) { vm.openLibrary() }
                 SecondaryButton("Settings", Modifier.weight(1f)) { vm.openSettings() }
             }
@@ -211,7 +218,9 @@ fun DrillScreen(vm: AppViewModel) {
     LaunchedEffect(item, result) {
         while (true) {
             fraction = vm.fractionDone.toFloat()
-            if (vm.result == null) elapsed = (android.os.SystemClock.elapsedRealtime() - vm.shownAt) / 1000.0
+            if (vm.result == null) {
+                elapsed = if (vm.listening) 0.0 else (android.os.SystemClock.elapsedRealtime() - vm.shownAt) / 1000.0
+            }
             kotlinx.coroutines.delay(100)
         }
     }
@@ -254,10 +263,18 @@ fun DrillScreen(vm: AppViewModel) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Spacer(Modifier.height(16.dp))
-            val long = "<br>" in problem.prompt || problem.prompt.replace(Regex("<[^>]+>"), "").length > 26
-            Text(richInline(problem.prompt),
-                style = if (long) Type.prompt.copy(fontSize = 21.sp, lineHeight = 29.sp) else Type.prompt,
-                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            if (vm.audio && vm.speechFailed) {
+                RichText(colored("Text-to-speech isn't available, so the problems are shown instead.", Palette.WARN),
+                    style = Type.muted, textAlign = TextAlign.Center)
+            }
+            if (vm.audio && !vm.speechFailed && result == null) {
+                AudioPrompt(vm.listening, vm::replay)
+            } else {
+                val long = "<br>" in problem.prompt || problem.prompt.replace(Regex("<[^>]+>"), "").length > 26
+                Text(richInline(problem.prompt),
+                    style = if (long) Type.prompt.copy(fontSize = 21.sp, lineHeight = 29.sp) else Type.prompt,
+                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            }
 
             val border = when {
                 result == null -> Palette.ACCENT
@@ -291,7 +308,8 @@ fun DrillScreen(vm: AppViewModel) {
                 vm.input.isBlank() -> "Show"
                 else -> "Enter"
             },
-            enterEnabled = result != null || vm.input.isNotBlank() || elapsed * 1000 >= AppViewModel.SHOW_DELAY_MS,
+            enterEnabled = result != null ||
+                (!vm.listening && (vm.input.isNotBlank() || elapsed * 1000 >= AppViewModel.SHOW_DELAY_MS)),
             onKey = { k ->
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                 vm.key(k)
@@ -306,12 +324,30 @@ private fun hardwareKey(vm: AppViewModel, e: androidx.compose.ui.input.key.KeyEv
         Key.Backspace -> vm.key(AppViewModel.BACKSPACE)
         Key.Escape -> vm.back()
         Key.F1 -> vm.showLesson()
+        Key.R -> vm.replay()
         else -> {
             val c = e.utf16CodePoint.toChar()
             if (c in "0123456789.-/ e^,x*") vm.key(if (c == '-') "−" else c.toString()) else return false
         }
     }
     return true
+}
+
+/** Audio practice: the problem is only heard. Tapping the speaker says it again. */
+@Composable
+private fun AudioPrompt(listening: Boolean, onReplay: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(
+            Modifier.size(84.dp).clip(CircleShape).background(Palette.SURFACE_2)
+                .border(2.dp, if (listening) Palette.ACCENT else Palette.BORDER, CircleShape)
+                .clickable(onClickLabel = "Hear the problem again", onClick = onReplay),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.AutoMirrored.Filled.VolumeUp, "Replay",
+                tint = if (listening) Palette.ACCENT else Palette.TEXT, modifier = Modifier.size(40.dp))
+        }
+        Text(if (listening) "Listening…" else "Tap to hear it again", style = Type.muted)
+    }
 }
 
 @Composable
@@ -459,7 +495,8 @@ fun SummaryScreen(vm: AppViewModel) {
     val benches = vm.summaryExtras?.benchmarks.orEmpty()
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp)) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(when (s.mode) { Mode.DAILY -> "Session complete"; Mode.PRACTICE -> "Practice complete"; Mode.BENCHMARK -> "Benchmark" },
+            val practice = if (vm.summaryExtras?.audio == true) "Audio practice complete" else "Practice complete"
+            Text(when (s.mode) { Mode.DAILY -> "Session complete"; Mode.PRACTICE -> practice; Mode.BENCHMARK -> "Benchmark" },
                 style = Type.h1)
             SummaryStats(s, benches)
             SummaryBody(s)

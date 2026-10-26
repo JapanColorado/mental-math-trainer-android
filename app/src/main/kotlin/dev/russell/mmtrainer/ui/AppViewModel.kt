@@ -17,8 +17,10 @@ import dev.russell.mmtrainer.Result
 import dev.russell.mmtrainer.Session
 import dev.russell.mmtrainer.Settings
 import dev.russell.mmtrainer.SkillStatus
+import dev.russell.mmtrainer.Speech
 import dev.russell.mmtrainer.Store
 import dev.russell.mmtrainer.Summary
+import dev.russell.mmtrainer.audio.Speaker
 import dev.russell.mmtrainer.content.Content
 import dev.russell.mmtrainer.content.Lesson
 import dev.russell.mmtrainer.py.fmtF
@@ -43,7 +45,7 @@ sealed interface Screen {
     data object Progress : Screen
     data object Library : Screen
     data class Topic(val itemId: String) : Screen
-    data object Practice : Screen
+    data class Practice(val audio: Boolean) : Screen
     data object SettingsPage : Screen
 }
 
@@ -92,7 +94,7 @@ data class ProgressData(
 )
 
 /** Extra numbers the summary screen shows that aren't part of the core Summary. */
-data class SummaryExtras(val benchmarks: List<Benchmark>)
+data class SummaryExtras(val benchmarks: List<Benchmark>, val audio: Boolean)
 
 val DURATIONS: List<Pair<String, Double?>> =
     listOf("1-minute sprint" to 1.0, "5 minutes" to 5.0, "10 minutes" to 10.0, "Until I stop" to null)
@@ -108,7 +110,7 @@ fun orderedIds(): List<String> {
     return ids + (Content.SKILLS.keys + Content.DECKS.keys).filter { it !in ids }
 }
 
-class AppViewModel(private val store: Store) : ViewModel() {
+class AppViewModel(private val store: Store, private val newSpeaker: () -> Speaker) : ViewModel() {
     var screen by mutableStateOf<Screen>(Screen.Home)
         private set
     var home by mutableStateOf<HomeData?>(null)
@@ -143,6 +145,18 @@ class AppViewModel(private val store: Store) : ViewModel() {
         private set
     private var autoJob: Job? = null
     private var inSession = false
+
+    // audio practice: the problem is read aloud instead of shown. The clock starts as its last word is
+    // said: not at the end of the speech, so typing during the last word doesn't make an answer instant.
+    var audio by mutableStateOf(false)
+        private set
+    /** The current problem is still being read out for the first time, up to its last word; the clock hasn't started. */
+    var listening by mutableStateOf(false)
+        private set
+    /** Text-to-speech isn't available, so audio practice falls back to showing the problems. */
+    var speechFailed by mutableStateOf(false)
+        private set
+    private var speaker: Speaker? = null
 
     var summary by mutableStateOf<Summary?>(null)
         private set
@@ -191,8 +205,8 @@ class AppViewModel(private val store: Store) : ViewModel() {
         io { topic = withContext(StoreThread) { loadTopic(itemId) } }
     }
 
-    fun openPractice() {
-        screen = Screen.Practice
+    fun openPractice(audio: Boolean = false) {
+        screen = Screen.Practice(audio)
         io { practiceRows = withContext(StoreThread) { loadLibrary(onlyUnlocked = true) } }
     }
 
@@ -208,7 +222,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
             Screen.Drill -> confirmQuit = true
             is Screen.LessonPage -> if (inSession) finish() else goHome()
             is Screen.Topic -> openLibrary()
-            Screen.SummaryPage, Screen.Progress, Screen.Library, Screen.Practice, Screen.SettingsPage -> goHome()
+            is Screen.Practice, Screen.SummaryPage, Screen.Progress, Screen.Library, Screen.SettingsPage -> goHome()
         }
         return true
     }
@@ -417,8 +431,8 @@ class AppViewModel(private val store: Store) : ViewModel() {
 
     fun startDaily() = start(Mode.DAILY)
 
-    fun startPractice(ids: List<String>, minutes: Double?) {
-        if (ids.isNotEmpty()) start(Mode.PRACTICE, ids, minutes)
+    fun startPractice(ids: List<String>, minutes: Double?, audio: Boolean = false) {
+        if (ids.isNotEmpty()) start(Mode.PRACTICE, ids, minutes, audio)
     }
 
     fun startBenchmark() {
@@ -440,9 +454,12 @@ class AppViewModel(private val store: Store) : ViewModel() {
         }
     }
 
-    private fun start(mode: Mode, itemIds: List<String>? = null, minutes: Double? = null) {
+    private fun start(mode: Mode, itemIds: List<String>? = null, minutes: Double? = null, audio: Boolean = false) {
+        this.audio = audio
+        speechFailed = false
+        if (audio && speaker == null) speaker = newSpeaker()  // started early: the engine takes a moment
         io {
-            session = withContext(StoreThread) { Session(store, mode, minutes = minutes, itemIds = itemIds) }
+            session = withContext(StoreThread) { Session(store, mode, minutes = minutes, itemIds = itemIds, audio = audio) }
             inSession = true
             nextItem()
         }
@@ -463,6 +480,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
             busy = false
             if (next == null) return@io finish()
             if (next.isLesson) {
+                speaker?.stop()
                 val lesson = next.lesson!!
                 screen = Screen.LessonPage(if (next.sourceId.startsWith("d_")) "NEW FACTS" else "NEW TECHNIQUE",
                     lesson.title, lesson.body, "Start practising")
@@ -474,8 +492,30 @@ class AppViewModel(private val store: Store) : ViewModel() {
                 hinted = false
                 screen = Screen.Drill
                 shownAt = SystemClock.elapsedRealtime()
+                if (audio && !speechFailed) {
+                    listening = true
+                    speakPrompt(next)
+                } else {
+                    listening = false
+                }
             }
         }
+    }
+
+    private fun speakPrompt(current: Item) {
+        speaker?.speak(Speech.speakable(current.problem!!.prompt)) { spoken ->
+            if (item !== current || !listening) return@speak  // a replay after the clock started, or a stale callback
+            if (!spoken) speechFailed = true
+            listening = false
+            shownAt = SystemClock.elapsedRealtime()
+            if (typedCorrectly()) submit()  // typed before the last word
+        }
+    }
+
+    /** Audio practice: say the current problem again. The clock keeps running once it has started. */
+    fun replay() {
+        val current = item ?: return
+        if (audio && !speechFailed) speakPrompt(current)
     }
 
     val fractionDone: Double get() = session?.fractionDone ?: 0.0
@@ -489,6 +529,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
         }
         if (busy) return  // an answer is being graded; don't let more typing change what was sent
         warning = null
+        if (k == ENTER && listening) return
         when (k) {
             // Show on a blank answer waits a moment, so a tap meant for the previous question's
             // Next (or one landing just after an auto-advance) doesn't skip this one.
@@ -506,7 +547,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
      */
     private fun typedCorrectly(): Boolean {
         val p = item?.problem ?: return false
-        if (settings?.autoSubmit == false || p.tolAbs > 0 || p.tolRel > 0) return false
+        if (listening || settings?.autoSubmit == false || p.tolAbs > 0 || p.tolRel > 0) return false
         if ("/" in input && item?.sourceId in DECIMAL_ONLY) return false
         val value = Answers.parse(input) ?: return false
         return p.isCorrect(value)
@@ -515,7 +556,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
     private fun submit() {
         val it = item ?: return
         val s = session ?: return
-        if (busy) return
+        if (busy || listening) return
         val text = input
         val value = Answers.parse(text)
         if (text.isNotBlank() && value == null) {
@@ -535,6 +576,7 @@ class AppViewModel(private val store: Store) : ViewModel() {
             result = r
             if (!(r.correct && !r.hinted)) {
                 wrongPulse++
+                if (audio) speaker?.speak(Speech.speakable(equation(r.item.problem!!)))
             } else if (settings?.autoAdvance != false && r.promotedTo == null) {
                 val p = r.item.problem!!
                 val approx = p.tolAbs > 0 || p.tolRel > 0
@@ -563,21 +605,29 @@ class AppViewModel(private val store: Store) : ViewModel() {
 
     fun finish() {
         autoJob?.cancel()
+        speaker?.stop()
+        listening = false
         confirmQuit = false
         val s = session ?: return goHome()
         session = null
         inSession = false
         item = null
+        val wasAudio = audio
+        audio = false
         io {
             val (sum, benches) = withContext(StoreThread) { s.finish() to store.benchmarks() }
             if ((sum.n == 0 && sum.mode != Mode.DAILY) || (sum.mode == Mode.BENCHMARK && sum.score == null)) {
                 goHome()
             } else {
                 summary = sum
-                summaryExtras = SummaryExtras(benches)
+                summaryExtras = SummaryExtras(benches, wasAudio)
                 screen = Screen.SummaryPage
             }
         }
+    }
+
+    override fun onCleared() {
+        speaker?.shutdown()
     }
 
     companion object {
@@ -586,9 +636,9 @@ class AppViewModel(private val store: Store) : ViewModel() {
         const val CLEAR = "\u0018"
         const val SHOW_DELAY_MS = 500L
 
-        fun factory(store: Store) = object : ViewModelProvider.Factory {
+        fun factory(store: Store, newSpeaker: () -> Speaker) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = AppViewModel(store) as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = AppViewModel(store, newSpeaker) as T
         }
     }
 }
