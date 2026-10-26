@@ -26,5 +26,8 @@ Single test: `./gradlew :core:test --tests 'dev.russell.mmtrainer.content.LogsTe
 - The golden tests (`Golden.checkModule`, `SessionTest.matchesPythonSessionTraces`) compare against
   fixtures from `tools/golden/dump_golden.py`. When the Python app changes, regenerate them with
   `pixi run golden` and port the change. Don't loosen the golden checks.
+- Deliberate divergence: topic prerequisites (`Curriculum.PREREQUISITES`, `Store.prerequisiteMet`) exist
+  only here. The session-trace parity test builds its Store with an empty prerequisite map, so
+  everything else still matches Python exactly; the gating has its own tests in `SessionTest`.
 - Helpers in content objects stay private (or `internal` when shared, e.g. `Logs` → `Powers`). All
   content files share one package.

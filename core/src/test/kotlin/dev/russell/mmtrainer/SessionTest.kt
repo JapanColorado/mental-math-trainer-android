@@ -21,7 +21,8 @@ class Clock(var t: Double = 1_800_000_000.0) : () -> Double {
     override fun invoke() = t
 }
 
-fun memoryStore(): Store = Store(JdbcDb()).also { it.now = Clock() }
+fun memoryStore(prerequisites: Map<String, List<String>> = Curriculum.PREREQUISITES): Store =
+    Store(JdbcDb(), prerequisites).also { it.now = Clock() }
 
 val Store.clock: Clock get() = now as Clock
 
@@ -62,6 +63,76 @@ class SessionTest {
         for ((skillId, level) in Curriculum.BENCHMARK) {
             assertTrue(level < Content.SKILLS.getValue(skillId).levels.size)
         }
+    }
+
+    @Test
+    fun prerequisitesComeEarlierInOrder() {
+        for ((id, prereqs) in Curriculum.PREREQUISITES) {
+            assertTrue(id in Curriculum.ORDER)
+            for (p in prereqs) {
+                assertTrue("$p before $id", Curriculum.ORDER.indexOf(p) in 0 until Curriculum.ORDER.indexOf(id))
+            }
+        }
+    }
+
+    private fun matureCards(deckId: String, n: Int) {
+        for (card in Content.DECKS.getValue(deckId).cards.take(n)) {
+            store.db.exec("INSERT OR REPLACE INTO cards (id, deck_id, state, ease, interval_days, due_ts) VALUES (?, ?, 'review', 2.5, ?, ?)",
+                listOf(card.id, deckId, PREREQ_MATURE_DAYS, store.now() + 30 * DAY))
+        }
+    }
+
+    @Test
+    fun skipsTopicsWhosePrerequisitesAreNotSolid() {
+        assertEquals("d_times", store.nextToIntroduce())
+        store.introduce("d_times")
+        assertEquals("s_add", store.nextToIntroduce())
+        store.introduce("s_add")
+        // everything else builds on times tables or addition
+        assertNull(store.nextToIntroduce())
+        assertEquals("s_mul1", store.nextInOrder())
+        assertEquals(listOf("d_times", "s_add"), store.missingPrerequisites("s_mul1"))
+        assertTrue(!store.canIntroduce())
+
+        store.setSkillLevel("s_add", 1)  // 1 of 4 levels passed: not yet half
+        assertNull(store.nextToIntroduce())
+        store.setSkillLevel("s_add", 2)
+        assertEquals("s_sub", store.nextToIntroduce())  // skips ahead past s_mul1 and d_squares
+
+        val cards = Content.DECKS.getValue("d_times").cards.size
+        val needed = Math.ceil(PREREQ_MATURE_SHARE * cards).toInt()
+        matureCards("d_times", needed - 1)
+        assertEquals(listOf("d_times"), store.missingPrerequisites("s_mul1"))
+        matureCards("d_times", needed)
+        assertEquals("s_mul1", store.nextToIntroduce())
+    }
+
+    @Test
+    fun halfOfTwoLevelSkillIsSolid() {
+        store.introduce("s_logint")
+        assertTrue(!store.prerequisiteMet("s_logint"))
+        store.setSkillLevel("s_logint", 1)  // half of two levels
+        assertTrue(store.prerequisiteMet("s_logint"))
+    }
+
+    @Test
+    fun dailySessionsOnlyIntroduceTopicsWithSolidPrerequisites() {
+        repeat(3) { day ->
+            val introducedBefore = store.introduced().keys
+            val solid = Curriculum.ORDER.filter { store.prerequisiteMet(it) }.toSet()
+            val session = Session(store, Mode.DAILY, rng = Rng(30L + day))
+            session.budget = null
+            val played = play(session, seconds = 0.5, limit = 80)
+            for (id in played.summary.introduced) {
+                assertTrue(id !in introducedBefore)
+                // prerequisites can become solid mid-session (a skill levels up), but never a deck on its first day
+                for (p in Curriculum.PREREQUISITES[id].orEmpty()) {
+                    assertTrue("$id needs $p", p in solid || Content.isSkill(p))
+                }
+            }
+            store.clock.t += DAY
+        }
+        assertTrue(!store.isIntroduced("s_mul1"))  // times tables can't be mature after three days
     }
 
     @Test
@@ -189,7 +260,7 @@ class SessionTest {
             val g = gj.obj
             val name = g.str("name")
             val sc = scenarios.getValue(name)
-            val st = memoryStore()
+            val st = memoryStore(prerequisites = emptyMap())  // the Python engine has no prerequisites
             var counter = 0
             val gSessions = g.arr("sessions")
             for (day in 0 until sc.days) {

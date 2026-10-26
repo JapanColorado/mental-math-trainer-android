@@ -267,8 +267,8 @@ fun LibraryScreen(vm: AppViewModel) {
     val tracks = vm.library
     Column(Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
         TopBar("Library", onBack = vm::goHome)
-        Text("Every topic with its lesson. Topics unlock automatically through daily sessions; " +
-            "you can also unlock and practise anything here.", style = Type.muted, modifier = Modifier.padding(horizontal = 8.dp))
+        Text("Every topic with its lesson. Topics unlock automatically through daily sessions once the topics " +
+            "they build on are solid; you can also unlock and practise anything here.", style = Type.muted, modifier = Modifier.padding(horizontal = 8.dp))
         if (tracks == null) return@Column
         LazyColumn(Modifier.padding(top = 8.dp)) {
             for ((track, rows) in tracks) {
@@ -303,6 +303,7 @@ fun TopicScreen(itemId: String, vm: AppViewModel) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("${t.summaryLine} · ${t.row.status}", style = Type.muted)
+            t.prerequisites?.let { RichText(it, style = Type.muted) }
             CardBox(Modifier.fillMaxWidth()) {
                 Text(t.lesson.title, style = Type.h2)
                 Spacer(Modifier.height(4.dp))

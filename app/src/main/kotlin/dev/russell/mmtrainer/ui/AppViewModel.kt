@@ -70,6 +70,7 @@ data class TopicDetail(
     val levels: List<String>,          // "L1: … (target 4 s)"; empty for decks
     val currentLevel: Int,
     val summaryLine: String,
+    val prerequisites: String?,        // rich text "Builds on: …", null when the topic has none
 )
 
 data class SettingsData(
@@ -95,6 +96,12 @@ data class SummaryExtras(val benchmarks: List<Benchmark>)
 
 val DURATIONS: List<Pair<String, Double?>> =
     listOf("1-minute sprint" to 1.0, "5 minutes" to 5.0, "10 minutes" to 10.0, "Until I stop" to null)
+
+/** "A", "A and B", "A, B and C". */
+private fun namesList(ids: List<String>): String {
+    val names = ids.map { Content.nameOf(it) }
+    return if (names.size <= 1) names.joinToString() else names.dropLast(1).joinToString(", ") + " and " + names.last()
+}
 
 fun orderedIds(): List<String> {
     val ids = Curriculum.ORDER.filter { Content.exists(it) }
@@ -228,8 +235,11 @@ class AppViewModel(private val store: Store) : ViewModel() {
             val dueSkills = intro.keys.count { Content.isSkill(it) && s.skillStatus(it).due }
             lines += "$dueCards facts and $dueSkills skills due for review."
             val nxt = s.nextToIntroduce()
+            val waiting = s.nextInOrder()
             if (nxt != null && s.canIntroduce()) lines += "Next new topic: <b>${Content.nameOf(nxt)}</b>"
             else if (nxt != null) lines += "Next new topic (once current ones settle): ${Content.nameOf(nxt)}"
+            else if (waiting != null) lines += "Next new topic: ${Content.nameOf(waiting)}, after you master " +
+                namesList(s.missingPrerequisites(waiting))
         }
         val benches = s.benchmarks()
         var benchValue = "—"
@@ -295,16 +305,21 @@ class AppViewModel(private val store: Store) : ViewModel() {
     private fun loadTopic(itemId: String): TopicDetail {
         val row = topicRow(itemId)
         val obj = Content.get(itemId)
+        val prereqs = store.prerequisites[itemId].orEmpty().takeIf { it.isNotEmpty() }?.let { ids ->
+            "Builds on: " + ids.joinToString(" · ") { id ->
+                if (store.prerequisiteMet(id)) "${Content.nameOf(id)} ✓" else "<b>${Content.nameOf(id)}</b> (not yet)"
+            }
+        }
         return if (Content.isSkill(itemId)) {
             val skill = Content.SKILLS.getValue(itemId)
             val current = if (store.isIntroduced(itemId)) store.skillStatus(itemId).level else 0
             TopicDetail(row, obj.lesson,
                 skill.levels.mapIndexed { i, l -> "L${i + 1}: ${l.description} (target ${fmtTarget(l.targetSeconds)})" },
-                current, "${skill.levels.size} levels")
+                current, "${skill.levels.size} levels", prereqs)
         } else {
             val s = store.deckStats(itemId)
             TopicDetail(row, obj.lesson, emptyList(), 0,
-                "${s.total} facts · ${s.seen} seen · ${s.mature} solid (interval ≥ 3 weeks) · ${s.due} due")
+                "${s.total} facts · ${s.seen} seen · ${s.mature} solid (interval ≥ 3 weeks) · ${s.due} due", prereqs)
         }
     }
 

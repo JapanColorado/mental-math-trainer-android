@@ -15,7 +15,8 @@ import kotlinx.serialization.json.put
  * Session engine: decides what to show next and applies the results. UI-agnostic.
  *
  * Daily session structure
- *   1. Introduce a new topic when the learning load allows it: lesson, then a short
+ *   1. Introduce a new topic when the learning load allows it and the topics it builds on are
+ *      solid (Curriculum.PREREQUISITES): lesson, then a short
  *      *blocked* run (several problems of just that topic) to acquire the method.
  *   2. Everything else is *interleaved*: due fact reviews, new facts (first shown as a
  *      retrieval attempt — if you already know it, it skips straight to long intervals),

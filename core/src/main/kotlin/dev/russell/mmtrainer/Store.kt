@@ -39,6 +39,10 @@ const val PACE_CAP = 3.0  // one lucky instant answer shouldn't dominate a pace 
 const val WINDOW = 12      // attempts considered when judging a level
 const val FAST_TRACK = 5   // ... or this many perfect, quick attempts in a row
 
+// Prerequisites: a skill is solid once half its levels are passed, a deck once most cards are mature
+const val PREREQ_MATURE_DAYS = 7.0
+const val PREREQ_MATURE_SHARE = 0.8
+
 object Settings {
     const val SESSION_MINUTES = "session_minutes"
     const val MAX_NEW_TOPICS = "max_new_topics"    // topics still "in learning" introduced per daily session
@@ -155,7 +159,7 @@ data class DeckStats(val total: Int, val seen: Int, val learning: Int, val matur
 
 data class Benchmark(val id: Long, val startTs: Double, val score: Double)
 
-class Store(val db: Db) {
+class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculum.PREREQUISITES) {
     var now: () -> Double = { System.currentTimeMillis() / 1000.0 }  // overridable in tests
 
     init {
@@ -203,10 +207,39 @@ class Store(val db: Db) {
             listOf(itemId, kind, now(), now()))
     }
 
+    /** The earliest topic in ORDER not yet introduced whose prerequisites are all solid. */
     fun nextToIntroduce(): String? {
+        val intro = introduced()
+        val met = HashMap<String, Boolean>()
+        return Curriculum.ORDER.firstOrNull { id ->
+            id !in intro && Content.exists(id) &&
+                prerequisites[id].orEmpty().all { met.getOrPut(it) { prerequisiteMet(it) } }
+        }
+    }
+
+    /** The earliest topic in ORDER not yet introduced, whether or not its prerequisites are met. */
+    fun nextInOrder(): String? {
         val intro = introduced()
         return Curriculum.ORDER.firstOrNull { it !in intro && Content.exists(it) }
     }
+
+    /** Whether [itemId] is solid enough to build on: half its levels passed, or most of its cards mature. */
+    fun prerequisiteMet(itemId: String): Boolean {
+        if (!Content.exists(itemId)) return true
+        if (!isIntroduced(itemId)) return false
+        if (Content.isSkill(itemId)) {
+            val st = skillStatus(itemId)
+            val passed = if (st.mastered) st.nLevels else st.level
+            return passed >= (st.nLevels + 1) / 2
+        }
+        val mature = (db.query("SELECT COUNT(*) AS n FROM cards WHERE deck_id=? AND state='review' AND interval_days >= ?",
+            listOf(itemId, PREREQ_MATURE_DAYS)).first().long("n")).toInt()
+        return mature >= PREREQ_MATURE_SHARE * Content.DECKS.getValue(itemId).cards.size
+    }
+
+    /** Prerequisites of [itemId] that are not solid yet. */
+    fun missingPrerequisites(itemId: String): List<String> =
+        prerequisites[itemId].orEmpty().filter { !prerequisiteMet(it) }
 
     /** How many introduced topics are still being learned. */
     fun learningLoad(): Int {
