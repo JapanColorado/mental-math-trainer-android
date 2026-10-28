@@ -1,5 +1,8 @@
 package dev.russell.mmtrainer
 
+import dev.russell.mmtrainer.py.pyStr
+import java.math.BigDecimal
+
 /** Parsing of typed answers into numbers. */
 object Answers {
     private const val NUM = """(?:\d+\.?\d*|\.\d+)"""
@@ -8,6 +11,7 @@ object Answers {
     private val FRAC = Regex("""^([+-]?$NUM)/($NUM)$""")
     private val MIXED = Regex("""^(\d+)\s+(\d+)/(\d+)$""")
     private val FLOAT = Regex("""^[+-]?(?:\d+\.?\d*(?:e[+-]?\d+)?|\.\d+(?:e[+-]?\d+)?)$""")
+    private val PLAIN = Regex("""^-?$NUM$""")
 
     /**
      * Parse a typed answer. Returns null if it isn't a recognisable number.
@@ -39,5 +43,15 @@ object Answers {
             return if (den != 0.0) m.groupValues[1].toDouble() / den else null
         }
         return null
+    }
+
+    /**
+     * Whether [text] is a plain decimal (no fraction, exponent or %) as long as [answer] written out
+     * in full, e.g. "−42" or "0.125": typed this far, it is finished and can be graded.
+     */
+    fun fullLength(text: String, answer: Double): Boolean {
+        val s = text.trim().replace("−", "-").replace("–", "-").replace(",", "").replace(" ", "")
+        if (!PLAIN.matches(s) || !answer.isFinite()) return false
+        return s.length == BigDecimal(pyStr(answer)).stripTrailingZeros().toPlainString().length
     }
 }

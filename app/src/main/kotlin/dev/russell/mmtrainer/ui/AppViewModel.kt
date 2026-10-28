@@ -508,7 +508,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             if (!spoken) speechFailed = true
             listening = false
             shownAt = SystemClock.elapsedRealtime()
-            if (typedCorrectly()) submit()  // typed before the last word
+            if (typedInFull()) submit()  // typed before the last word
         }
     }
 
@@ -538,19 +538,20 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             CLEAR -> input = ""
             else -> if (input.length < 24) input += k
         }
-        if (k != ENTER && k != CLEAR && typedCorrectly()) submit()
+        if (k != ENTER && k != CLEAR && typedInFull()) submit()
     }
 
     /**
-     * Auto-submit check. Only exact problems qualify: with a tolerance, a prefix of a wrong answer
-     * can already be within it (4 on the way to 4.5 when the answer is 4.1 ± 5%).
+     * Auto-submit check: the answer is right, or as long as the right one and so finished (a miss).
+     * Only exact problems qualify: with a tolerance, a prefix of a wrong answer can already be
+     * within it (4 on the way to 4.5 when the answer is 4.1 ± 5%).
      */
-    private fun typedCorrectly(): Boolean {
+    private fun typedInFull(): Boolean {
         val p = item?.problem ?: return false
         if (listening || settings?.autoSubmit == false || p.tolAbs > 0 || p.tolRel > 0) return false
         if ("/" in input && item?.sourceId in DECIMAL_ONLY) return false
         val value = Answers.parse(input) ?: return false
-        return p.isCorrect(value)
+        return p.isCorrect(value) || Answers.fullLength(input, p.answer)
     }
 
     private fun submit() {

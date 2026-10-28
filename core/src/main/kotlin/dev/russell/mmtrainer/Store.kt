@@ -53,7 +53,7 @@ object Settings {
     const val FONT_SCALE = "font_scale"
     const val HAPTICS = "haptics"                  // Android only: vibrate on wrong answers
     const val DYNAMIC_COLOR = "dynamic_color"      // Android only: Material You wallpaper colors
-    const val AUTO_SUBMIT = "auto_submit"          // Android only: submit an exact answer once it's typed correctly
+    const val AUTO_SUBMIT = "auto_submit"          // Android only: submit an exact answer once it's right or full length
 
     val DEFAULTS: Map<String, JsonPrimitive> = mapOf(
         SESSION_MINUTES to JsonPrimitive(12),
