@@ -45,7 +45,7 @@ const val PREREQ_MATURE_SHARE = 0.8
 
 object Settings {
     const val SESSION_MINUTES = "session_minutes"
-    const val MAX_NEW_TOPICS = "max_new_topics"    // topics still "in learning" introduced per daily session
+    const val MAX_NEW_TOPICS = "max_new_topics"    // topics still "in learning" introduced per quick session
     const val LEARNING_LIMIT = "learning_limit"    // don't introduce more while this many topics are in learning
     const val NEW_CARDS = "new_cards"              // new facts to learn per session (already-known ones are free)
     const val AUTO_ADVANCE = "auto_advance"
@@ -54,12 +54,13 @@ object Settings {
     const val HAPTICS = "haptics"                  // Android only: vibrate on wrong answers
     const val DYNAMIC_COLOR = "dynamic_color"      // Android only: Material You wallpaper colors
     const val AUTO_SUBMIT = "auto_submit"          // Android only: submit an exact answer once it's right or full length
+    const val SHORT_SESSIONS = "short_sessions"    // marker: old 12-minute defaults have been moved to the new ones
 
     val DEFAULTS: Map<String, JsonPrimitive> = mapOf(
-        SESSION_MINUTES to JsonPrimitive(12),
+        SESSION_MINUTES to JsonPrimitive(3),
         MAX_NEW_TOPICS to JsonPrimitive(2),
         LEARNING_LIMIT to JsonPrimitive(3),
-        NEW_CARDS to JsonPrimitive(10),
+        NEW_CARDS to JsonPrimitive(3),
         AUTO_ADVANCE to JsonPrimitive(true),
         SHOW_TARGET_BAR to JsonPrimitive(true),
         FONT_SCALE to JsonPrimitive(1.0),
@@ -169,6 +170,12 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
         db.exec(SCHEMA)
         if (db.query("PRAGMA table_info(sessions)").none { it.string("name") == "audio" }) {
             db.exec("ALTER TABLE sessions ADD COLUMN audio INTEGER NOT NULL DEFAULT 0")  // databases from before audio practice
+        }
+        // Saving any setting stores them all, so old defaults can be in the table without having been chosen.
+        if (db.query("SELECT 1 FROM settings WHERE key=?", listOf(Settings.SHORT_SESSIONS)).isEmpty()) {
+            db.exec("DELETE FROM settings WHERE key=? AND value='12'", listOf(Settings.SESSION_MINUTES))
+            db.exec("DELETE FROM settings WHERE key=? AND value='10'", listOf(Settings.NEW_CARDS))
+            setSetting(Settings.SHORT_SESSIONS, true)
         }
     }
 
@@ -337,11 +344,16 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
         db.exec("UPDATE items SET level=? WHERE id=?", listOf(level, skillId))
     }
 
-    /** Space a skill after a session. pace = target / median time (>1 is faster than target). */
+    /**
+     * Space a skill after a session. pace = target / median time (>1 is faster than target).
+     * Doing well only lengthens the interval when the skill was due, so repeat sessions in a day don't.
+     */
     fun rescheduleSkill(skillId: String, accuracy: Double, pace: Double, promoted: Boolean) {
-        val row = db.query("SELECT interval_days FROM items WHERE id=?", listOf(skillId)).firstOrNull() ?: return
+        val row = db.query("SELECT interval_days, due_ts FROM items WHERE id=?", listOf(skillId)).firstOrNull() ?: return
         val interval = if (promoted || accuracy < 0.85 || pace < 0.8) {
             1.0
+        } else if (row.double("due_ts") >= dayEnd(now())) {
+            return
         } else {
             minOf(30.0, maxOf(1.0, row.double("interval_days")) * (if (pace >= 1) 2.5 else 1.6))
         }
@@ -452,7 +464,7 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
         db.query("SELECT id, start_ts, score FROM sessions WHERE mode='benchmark' AND score IS NOT NULL ORDER BY start_ts")
             .map { Benchmark(it.long("id"), it.double("start_ts"), it.double("score")) }
 
-    /** Consecutive study days (ending today or yesterday) with a finished daily session. */
+    /** Consecutive study days (ending today or yesterday) with a finished quick session. */
     fun streak(): Int {
         val days = db.query("SELECT start_ts FROM sessions WHERE mode='daily' AND end_ts IS NOT NULL AND n > 0")
             .map { dayStart(it.double("start_ts")) }.toSet()
@@ -466,9 +478,9 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
         return count
     }
 
-    fun didDailyToday(): Boolean =
+    fun sessionsToday(): Int =
         db.query("SELECT 1 FROM sessions WHERE mode='daily' AND end_ts IS NOT NULL AND n > 0 AND start_ts >= ?",
-            listOf(dayStart(now()))).isNotEmpty()
+            listOf(dayStart(now()))).size
 
     data class DayPace(val day: Double, val pace: Double, val accuracy: Double)
 

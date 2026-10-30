@@ -14,7 +14,7 @@ import kotlinx.serialization.json.put
 /*
  * Session engine: decides what to show next and applies the results. UI-agnostic.
  *
- * Daily session structure
+ * Quick session structure (Mode.DAILY; several a day are fine)
  *   1. Introduce a new topic when the learning load allows it and the topics it builds on are
  *      solid (Curriculum.PREREQUISITES): lesson, then a short
  *      *blocked* run (several problems of just that topic) to acquire the method.
@@ -31,7 +31,7 @@ const val BLOCKED_PROBLEMS = 5     // problems in the focused run right after a 
 const val BLOCKED_CARDS = 6        // new facts presented back to back right after a deck's lesson
 const val NEW_CARD_WINDOW = 10     // new facts are drawn at random from this many next unseen cards of a deck
 const val MAX_NEW_EXPOSURES = 40   // hard cap on new-card exposures per session
-const val OVERTIME = 180.0         // seconds allowed past the budget to finish relearning missed facts
+const val OVERTIME = 60.0          // seconds allowed past the budget to finish relearning missed facts
 
 enum class Mode(val id: String) { DAILY("daily"), PRACTICE("practice"), BENCHMARK("benchmark") }
 

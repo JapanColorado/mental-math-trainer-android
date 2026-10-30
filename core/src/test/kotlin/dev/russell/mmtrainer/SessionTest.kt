@@ -169,6 +169,59 @@ class SessionTest {
     }
 
     @Test
+    fun movesOldSessionDefaultsOnce() {
+        val db = JdbcDb()
+        val store = Store(db)
+        store.setSetting(Settings.SESSION_MINUTES, 12)
+        store.setSetting(Settings.NEW_CARDS, 10)
+        db.exec("DELETE FROM settings WHERE key=?", listOf(Settings.SHORT_SESSIONS))  // as saved by an older version
+
+        val moved = Store(db)
+        assertEquals(3, moved.settingInt(Settings.SESSION_MINUTES))
+        assertEquals(3, moved.settingInt(Settings.NEW_CARDS))
+
+        moved.setSetting(Settings.SESSION_MINUTES, 12)  // chosen after the move: kept
+        assertEquals(12, Store(db).settingInt(Settings.SESSION_MINUTES))
+    }
+
+    @Test
+    fun keepsChosenSessionLengthWhenMovingDefaults() {
+        val db = JdbcDb()
+        Store(db).setSetting(Settings.SESSION_MINUTES, 20)
+        db.exec("DELETE FROM settings WHERE key=?", listOf(Settings.SHORT_SESSIONS))
+        assertEquals(20, Store(db).settingInt(Settings.SESSION_MINUTES))
+    }
+
+    @Test
+    fun repeatSessionsInADayDoNotStretchSkillIntervals() {
+        store.introduce("s_add")
+        fun interval() = store.db.query("SELECT interval_days FROM items WHERE id='s_add'").single().double("interval_days")
+        store.rescheduleSkill("s_add", 1.0, 1.0, false)
+        assertEquals(2.5, interval(), 1e-9)
+        store.rescheduleSkill("s_add", 1.0, 1.0, false)  // again the same day
+        assertEquals(2.5, interval(), 1e-9)
+        store.rescheduleSkill("s_add", 0.5, 1.0, false)  // a poor repeat still brings it back
+        assertEquals(1.0, interval(), 1e-9)
+        store.clock.t += DAY
+        store.rescheduleSkill("s_add", 1.0, 1.0, false)  // due again
+        assertEquals(2.5, interval(), 1e-9)
+    }
+
+    @Test
+    fun countsSessionsToday() {
+        assertEquals(0, store.sessionsToday())
+        repeat(2) {
+            val s = Session(store, Mode.DAILY, rng = Rng(9))
+            s.budget = null
+            play(s, limit = 3)
+        }
+        assertEquals(2, store.sessionsToday())
+        assertEquals(1, store.streak())  // several sessions in a day still count as one streak day
+        store.clock.t += DAY
+        assertEquals(0, store.sessionsToday())
+    }
+
+    @Test
     fun slowAnswersDoNotPromote() {
         store.introduce("s_add")
         val target = Content.SKILLS.getValue("s_add").levels[0].targetSeconds

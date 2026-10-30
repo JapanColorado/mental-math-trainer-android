@@ -53,7 +53,7 @@ data class HomeData(
     val streak: Int,
     val minutes: Int,
     val lines: List<String>,
-    val doneToday: Boolean,
+    val sessionsToday: Int,
     val benchValue: String,
     val benchNote: String,
     val benchStale: Boolean,
@@ -238,7 +238,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         val intro = s.introduced()
         val lines = mutableListOf<String>()
         if (intro.isEmpty()) {
-            lines += "Welcome! Each daily session mixes memorizing key facts, short lessons on mental " +
+            lines += "Welcome! Each quick session mixes memorizing key facts, short lessons on mental " +
                 "techniques, and timed interleaved drills. Your first session starts with the basics " +
                 "and moves on quickly if you already know them."
             if (s.benchmarks().isEmpty()) {
@@ -285,7 +285,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         }
         val mastered = intro.keys.count { Content.isSkill(it) && s.skillStatus(it).mastered }
         val total = Content.SKILLS.size + Content.DECKS.size
-        return HomeData(streak, minutes, lines, s.didDailyToday(), benchValue, benchNote, stale, paceValue, paceNote,
+        return HomeData(streak, minutes, lines, s.sessionsToday(), benchValue, benchNote, stale, paceValue, paceNote,
             "${intro.size}/$total", "unlocked · $mastered skills mastered")
     }
 

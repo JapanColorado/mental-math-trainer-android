@@ -47,7 +47,7 @@ object Curriculum {
         "s_invtrig",
     )
 
-    // Direct prerequisites: a topic is only introduced by a daily session once each of these is
+    // Direct prerequisites: a topic is only introduced by a quick session once each of these is
     // solid (see Store.prerequisiteMet). Every prerequisite comes earlier in ORDER.
     val PREREQUISITES: Map<String, List<String>> = mapOf(
         "s_mul1" to listOf("d_times", "s_add"),

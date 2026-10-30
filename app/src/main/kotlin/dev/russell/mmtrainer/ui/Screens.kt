@@ -138,16 +138,16 @@ fun HomeScreen(vm: AppViewModel) {
         }
         CardBox(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Today's session", style = Type.h2)
-                if (h?.doneToday == true) {
+                Text("Today", style = Type.h2)
+                if (h != null && h.sessionsToday > 0) {
                     Spacer(Modifier.width(10.dp))
-                    Text("✓ done", style = Type.muted, color = Palette.GOOD)
+                    Text("✓ ${h.sessionsToday} ${if (h.sessionsToday == 1) "session" else "sessions"} done",
+                        style = Type.muted, color = Palette.GOOD)
                 }
             }
-            if (h?.doneToday == true) Text("Extra sessions still help.", style = Type.muted)
             h?.lines?.forEach { RichText(it, style = Type.muted) }
             Spacer(Modifier.height(8.dp))
-            PrimaryButton("Start daily session (${h?.minutes ?: 12} min)", Modifier.fillMaxWidth(), enabled = h != null) {
+            PrimaryButton("Start quick session (${h?.minutes ?: 3} min)", Modifier.fillMaxWidth(), enabled = h != null) {
                 vm.startDaily()
             }
         }

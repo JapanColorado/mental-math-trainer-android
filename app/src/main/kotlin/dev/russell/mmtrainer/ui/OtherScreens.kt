@@ -267,7 +267,7 @@ fun LibraryScreen(vm: AppViewModel) {
     val tracks = vm.library
     Column(Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
         TopBar("Library", onBack = vm::goHome)
-        Text("Every topic with its lesson. Topics unlock automatically through daily sessions once the topics " +
+        Text("Every topic with its lesson. Topics unlock automatically through quick sessions once the topics " +
             "they build on are solid; you can also unlock and practise anything here.", style = Type.muted, modifier = Modifier.padding(horizontal = 8.dp))
         if (tracks == null) return@Column
         LazyColumn(Modifier.padding(top = 8.dp)) {
@@ -343,7 +343,7 @@ fun PracticeScreen(audio: Boolean, vm: AppViewModel) {
             style = Type.muted, modifier = Modifier.padding(horizontal = 8.dp))
         if (tracks == null) return@Column
         if (tracks.isEmpty()) {
-            Text("Nothing unlocked yet — do a daily session or unlock topics in the Library.",
+            Text("Nothing unlocked yet — do a quick session or unlock topics in the Library.",
                 style = Type.body, modifier = Modifier.padding(16.dp))
             return@Column
         }
@@ -394,7 +394,7 @@ fun SettingsScreen(vm: AppViewModel) {
         TopBar("Settings", onBack = vm::goHome)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Stepper("Daily session length", s.minutes, 3..60, " min") { save(s.copy(minutes = it)) }
+            Stepper("Quick session length", s.minutes, 3..60, " min") { save(s.copy(minutes = it)) }
             Stepper("New topics per session", s.newTopics, 0..5) { save(s.copy(newTopics = it)) }
             Stepper("Max topics in learning at once", s.learningLimit, 1..10) { save(s.copy(learningLimit = it)) }
             Stepper("New facts to learn per session", s.newCards, 0..40) { save(s.copy(newCards = it)) }
