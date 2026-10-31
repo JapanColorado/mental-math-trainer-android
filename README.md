@@ -2,9 +2,9 @@
 
 A Kotlin / Jetpack Compose app for daily mental-math practice on a phone: spaced-repetition
 anchor facts, short technique lessons, interleaved timed drills from times tables up to logs,
-roots, trig and Fermi estimates, a weekly benchmark, progress charts, and audio practice
-(problems read aloud by the system text-to-speech engine, answers typed). Progress is local
-to the phone.
+roots, trig and Fermi estimates, a weekly benchmark, progress charts, audio practice (problems
+read aloud by the system text-to-speech engine, answers typed), one-tap weak-spot practice, and
+an optional daily reminder. Progress is local to the phone.
 
 ## Build and install
 
@@ -31,6 +31,7 @@ core/      pure-Kotlin JVM module with all the learning logic
   Session.kt   what to show next: lessons, blocked runs, interleaving, relearning
   Answers.kt   parsing typed answers
   Speech.kt    rich-text prompts as plain English for text-to-speech
-app/       Android UI (Compose): home, lesson, drill with a custom keypad, summary,
-           progress charts, library, free/audio practice, settings; audio/Speaker.kt wraps TextToSpeech
+app/       Android UI (Compose): bottom-nav sections (today, practice, library, progress), onboarding,
+           lesson, drill with a custom keypad, summary, settings; audio/Speaker.kt wraps TextToSpeech,
+           notify/Reminders.kt schedules the daily reminder
 ```

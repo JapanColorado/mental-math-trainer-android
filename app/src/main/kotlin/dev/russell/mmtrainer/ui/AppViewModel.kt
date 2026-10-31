@@ -91,7 +91,7 @@ data class TopicDetail(
 data class SettingsData(
     val minutes: Int, val newTopics: Int, val learningLimit: Int, val newCards: Int,
     val autoAdvance: Boolean, val showTargetBar: Boolean, val fontScale: Double, val haptics: Boolean,
-    val dynamicColor: Boolean, val autoSubmit: Boolean,
+    val dynamicColor: Boolean, val autoSubmit: Boolean, val reminderEnabled: Boolean, val reminderMinute: Int,
 )
 
 data class SkillRow(val id: String, val name: String, val track: String, val status: SkillStatus, val levelText: String)
@@ -126,6 +126,7 @@ fun orderedIds(): List<String> {
 class AppViewModel(
     private val store: Store,
     private val newSpeaker: () -> Speaker,
+    private val scheduleReminder: (enabled: Boolean, minute: Int) -> Unit,
 ) : ViewModel() {
     var screen by mutableStateOf<Screen>(Screen.Home)
         private set
@@ -204,7 +205,7 @@ class AppViewModel(
         private set
 
     init {
-        refreshSettings()
+        val settingsLoaded = refreshSettings()
         io {
             class Startup(val home: HomeData, val fresh: Boolean, val duration: Int, val audio: Boolean, val excluded: Set<String>)
             val start = withContext(StoreThread) {
@@ -220,6 +221,8 @@ class AppViewModel(
             practiceExcluded = start.excluded
             if (start.fresh) screen = Screen.Onboarding
             ready = true
+            settingsLoaded.join()
+            settings?.let { if (it.reminderEnabled) scheduleReminder(true, it.reminderMinute) }  // survives app updates
         }
     }
 
@@ -466,12 +469,17 @@ class AppViewModel(
                     store.settingBool(Settings.AUTO_ADVANCE), store.settingBool(Settings.SHOW_TARGET_BAR),
                     store.settingDouble(Settings.FONT_SCALE), store.settingBool(Settings.HAPTICS),
                     store.settingBool(Settings.DYNAMIC_COLOR), store.settingBool(Settings.AUTO_SUBMIT),
+                    store.settingBool(Settings.REMINDER_ENABLED), store.settingInt(Settings.REMINDER_MINUTE),
                 )
             }
         }
 
     fun saveSettings(d: SettingsData) {
+        val old = settings
         settings = d
+        if (old == null || old.reminderEnabled != d.reminderEnabled || old.reminderMinute != d.reminderMinute) {
+            scheduleReminder(d.reminderEnabled, d.reminderMinute)
+        }
         io {
             withContext(StoreThread) {
                 store.setSetting(Settings.SESSION_MINUTES, d.minutes)
@@ -484,6 +492,8 @@ class AppViewModel(
                 store.setSetting(Settings.HAPTICS, d.haptics)
                 store.setSetting(Settings.DYNAMIC_COLOR, d.dynamicColor)
                 store.setSetting(Settings.AUTO_SUBMIT, d.autoSubmit)
+                store.setSetting(Settings.REMINDER_ENABLED, d.reminderEnabled)
+                store.setSetting(Settings.REMINDER_MINUTE, d.reminderMinute)
             }
         }
     }
@@ -758,11 +768,11 @@ class AppViewModel(
         const val CLEAR = "\u0018"
         const val SHOW_DELAY_MS = 500L
 
-        fun factory(store: Store, newSpeaker: () -> Speaker) =
+        fun factory(store: Store, newSpeaker: () -> Speaker, scheduleReminder: (Boolean, Int) -> Unit) =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                    AppViewModel(store, newSpeaker) as T
+                    AppViewModel(store, newSpeaker, scheduleReminder) as T
             }
     }
 }

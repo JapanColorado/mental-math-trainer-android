@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dev.russell.mmtrainer.audio.Speaker
+import dev.russell.mmtrainer.notify.Reminders
 import dev.russell.mmtrainer.ui.AppRoot
 import dev.russell.mmtrainer.ui.AppViewModel
 
@@ -15,6 +16,7 @@ class MainActivity : ComponentActivity() {
         AppViewModel.factory(
             (application as MmtApp).store,
             { Speaker(application) },
+            { enabled, minute -> Reminders.schedule(application, enabled, minute) },
         )
     }
 

@@ -1,5 +1,13 @@
 package dev.russell.mmtrainer.ui
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings as AndroidSettings
+import android.text.format.DateFormat
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +48,7 @@ import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
@@ -48,7 +57,9 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TriStateCheckbox
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +78,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -81,9 +93,12 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import dev.russell.mmtrainer.BuildConfig
 import dev.russell.mmtrainer.py.fmtF
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.ceil
@@ -517,11 +532,26 @@ fun PracticeScreen(vm: AppViewModel) {
 
 // ====================================================================== Settings
 
+/** "7:00 PM" or "19:00", following the device's clock format. */
+private fun formatTime(context: android.content.Context, minute: Int): String {
+    val cal = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, minute / 60)
+        set(Calendar.MINUTE, minute % 60)
+    }
+    return DateFormat.getTimeFormat(context).format(cal.time)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(vm: AppViewModel) {
     val s = vm.settings ?: return
+    val context = LocalContext.current
     var confirmReset by remember { mutableStateOf(false) }
+    var pickTime by remember { mutableStateOf(false) }
     fun save(d: SettingsData) = vm.saveSettings(d)
+    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) save(s.copy(reminderEnabled = true))
+    }
     Column(Modifier.fillMaxSize()) {
         TopBar("Settings", onBack = vm::goHome)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
@@ -540,6 +570,33 @@ fun SettingsScreen(vm: AppViewModel) {
                 { Toggle("Target-time bar", "Shows the time left to beat the target.", s.showTargetBar) { save(s.copy(showTargetBar = it)) } },
                 { Toggle("Vibrate on a wrong answer", "", s.haptics) { save(s.copy(haptics = it)) } },
             ))
+            SettingsSection("Reminder")
+            val systemAllowed = NotificationManagerCompat.from(context).areNotificationsEnabled()
+            ListGroup(buildList {
+                add {
+                    Toggle("Daily reminder", "Skipped on days you've already done a session.", s.reminderEnabled) { on ->
+                        val needsAsk = on && Build.VERSION.SDK_INT >= 33 &&
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                        if (needsAsk) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) else save(s.copy(reminderEnabled = on))
+                    }
+                }
+                if (s.reminderEnabled) add {
+                    Row(Modifier.fillMaxWidth().clickable { pickTime = true }.heightIn(min = 56.dp).padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Text("Time", style = Type.body, modifier = Modifier.weight(1f))
+                        Text(formatTime(context, s.reminderMinute), style = Type.title, color = Palette.ACCENT)
+                    }
+                }
+                if (s.reminderEnabled && !systemAllowed) add {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Notifications are off for this app, so the reminder can't appear.", style = Type.muted, color = Palette.WARN)
+                        SecondaryButton("Open notification settings") {
+                            context.startActivity(Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(AndroidSettings.EXTRA_APP_PACKAGE, context.packageName))
+                        }
+                    }
+                }
+            })
             SettingsSection("Appearance")
             ListGroup(buildList {
                 if (dynamicColorSupported) add {
@@ -564,6 +621,22 @@ fun SettingsScreen(vm: AppViewModel) {
             Text("Mental Math ${BuildConfig.VERSION_NAME}", style = Type.label.copy(fontWeight = FontWeight.Normal),
                 textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
         }
+    }
+    if (pickTime) {
+        val state = rememberTimePickerState(s.reminderMinute / 60, s.reminderMinute % 60, DateFormat.is24HourFormat(context))
+        AlertDialog(
+            onDismissRequest = { pickTime = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickTime = false
+                    save(s.copy(reminderMinute = state.hour * 60 + state.minute))
+                }) { Text("Set") }
+            },
+            dismissButton = { TextButton(onClick = { pickTime = false }) { Text("Cancel") } },
+            title = { Text("Reminder time", style = Type.h2) },
+            text = { TimePicker(state) },
+            containerColor = Palette.SURFACE,
+        )
     }
     if (confirmReset) {
         AlertDialog(

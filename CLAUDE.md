@@ -32,8 +32,14 @@ through pixi too, so it gets that environment.
   level promotion, settings). `Session` decides what to show next (lesson, blocked run, interleaved
   reviews, relearning missed facts) and is UI-agnostic. A "day" rolls over at 4 am local time.
 - `:app` has a single `AppViewModel`, which is a screen state machine (`Screen` sealed interface,
-  no navigation library). Every Store/Session call runs on `StoreThread`, a single thread, through
+  no navigation library). `AppRoot` animates between screens and shows the bottom bar on the
+  `Screen.isTopLevel` sections. A screen stays composed while it transitions out, so it can't assume
+  session state is still there. Every Store/Session call runs on `StoreThread`, a single thread, through
   `withContext`. `MmtApp` owns the one `Store`.
+- Weak-spot practice: `Store.weakSpots` picks skills and individual facts, and `Session(focusCards = …)`
+  drills those facts without moving their review schedule.
+- `notify/Reminders.kt` holds the daily reminder: one inexact alarm, rescheduled each time it fires and
+  by `ReminderReceiver` after a reboot, update or clock change.
 - Content strings are a small HTML subset rendered by `ui/RichText.kt` (supported tags are listed in
   `content/Base.kt`).
 
@@ -44,6 +50,9 @@ through pixi too, so it gets that environment.
   Generators draw from the `Rng` they're given, so seeded tests stay reproducible.
 - Content tests use `Claims.checkClaims` to verify the arithmetic written in explanations, and
   `SpeechTest` checks every generator's output reads as plain words through `Speech.speakable`.
+- Lessons are written for a phone: `<h3>` per technique, a short rule, `<ex>` for a worked example (one
+  step per `<br>` line), `<tip>` for when to use it. `LessonsTest` checks their tags, arithmetic, thin-space
+  thousands and paragraph length. Use `≈`, not `=`, for anything rounded; `=` claims must be exact.
 - Cards can carry an `altPrompt` (the same fact asked another way, e.g. "6 × 2" for "2 × 6"), which
   `Session` shows half the time. `Session` also serves due facts in random order and draws new ones at
   random from the next `NEW_CARD_WINDOW` unseen cards of a deck, so one answer never cues the next.
