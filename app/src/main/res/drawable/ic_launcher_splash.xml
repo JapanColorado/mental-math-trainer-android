@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash mark: the launcher tile, inset so it sits inside the splash icon mask. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_launcher_background" android:bottom="22dp" android:left="22dp" android:right="22dp" android:top="22dp" />
+    <item android:drawable="@drawable/ic_launcher_foreground" android:bottom="22dp" android:left="22dp" android:right="22dp" android:top="22dp" />
+</layer-list>

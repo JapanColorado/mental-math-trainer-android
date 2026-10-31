@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon version of the launcher glyph: one color only. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="9.5"
+        android:strokeLineCap="round"
+        android:pathData="M50,39 L72,61 M72,39 L50,61" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M31,41 L42,41 M26,50 L42,50 M31,59 L42,59" />
+</vector>
