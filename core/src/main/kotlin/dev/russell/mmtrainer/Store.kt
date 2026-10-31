@@ -39,6 +39,13 @@ const val PACE_CAP = 3.0  // one lucky instant answer shouldn't dominate a pace 
 const val WINDOW = 12      // attempts considered when judging a level
 const val FAST_TRACK = 5   // ... or this many perfect, quick attempts in a row
 
+// Weak-spot practice
+const val WEAK_SKILLS = 3               // skills in one weak-spot session
+const val WEAK_CARDS = 12               // facts in one weak-spot session
+const val WEAK_SKILL_WINDOW = 20        // latest attempts judged per skill
+const val WEAK_CARD_WINDOW = 5          // ... per fact
+const val WEAK_MIN_SKILL_ATTEMPTS = 5   // fewer than this says nothing yet
+
 // Prerequisites: a skill is solid once half its levels are passed, a deck once most cards are mature
 const val PREREQ_MATURE_DAYS = 7.0
 const val PREREQ_MATURE_SHARE = 0.8
@@ -55,6 +62,12 @@ object Settings {
     const val DYNAMIC_COLOR = "dynamic_color"      // Android only: Material You wallpaper colors
     const val AUTO_SUBMIT = "auto_submit"          // Android only: submit an exact answer once it's right or full length
     const val SHORT_SESSIONS = "short_sessions"    // marker: old 12-minute defaults have been moved to the new ones
+    const val ONBOARDED = "onboarded"              // Android only: the welcome flow has been seen
+    const val REMINDER_ENABLED = "reminder_enabled"  // Android only: a daily practice notification
+    const val REMINDER_MINUTE = "reminder_minute"  // Android only: its time, in minutes after midnight
+    const val PRACTICE_DURATION = "practice_duration"  // Android only: last duration chosen for a custom mix
+    const val PRACTICE_AUDIO = "practice_audio"    // Android only: last custom mix was read aloud
+    const val PRACTICE_EXCLUDED = "practice_excluded"  // Android only: comma-separated topic ids left out of a custom mix
 
     val DEFAULTS: Map<String, JsonPrimitive> = mapOf(
         SESSION_MINUTES to JsonPrimitive(3),
@@ -67,6 +80,12 @@ object Settings {
         HAPTICS to JsonPrimitive(true),
         DYNAMIC_COLOR to JsonPrimitive(true),
         AUTO_SUBMIT to JsonPrimitive(true),
+        ONBOARDED to JsonPrimitive(false),
+        REMINDER_ENABLED to JsonPrimitive(false),
+        REMINDER_MINUTE to JsonPrimitive(19 * 60),
+        PRACTICE_DURATION to JsonPrimitive(1),
+        PRACTICE_AUDIO to JsonPrimitive(false),
+        PRACTICE_EXCLUDED to JsonPrimitive(""),
     )
 }
 
@@ -163,6 +182,12 @@ data class DeckStats(val total: Int, val seen: Int, val learning: Int, val matur
 
 data class Benchmark(val id: Long, val startTs: Double, val score: Double)
 
+/** What a weak-spot session drills: whole skills, and individual facts from the decks. */
+data class WeakSpots(val skills: List<String>, val cards: List<String>) {
+    val isEmpty: Boolean get() = skills.isEmpty() && cards.isEmpty()
+    val size: Int get() = skills.size + cards.size
+}
+
 class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculum.PREREQUISITES) {
     var now: () -> Double = { System.currentTimeMillis() / 1000.0 }  // overridable in tests
 
@@ -189,6 +214,7 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
     fun settingInt(key: String): Int = setting(key).let { it.content.toDoubleOrNull()?.toInt() ?: it.int }
     fun settingBool(key: String): Boolean = setting(key).boolean
     fun settingDouble(key: String): Double = setting(key).double
+    fun settingString(key: String): String = setting(key).content
 
     fun setSetting(key: String, value: JsonElement) {
         db.exec("INSERT OR REPLACE INTO settings VALUES (?, ?)", listOf(key, value.toString()))
@@ -197,6 +223,7 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
     fun setSetting(key: String, value: Int) = setSetting(key, JsonPrimitive(value))
     fun setSetting(key: String, value: Boolean) = setSetting(key, JsonPrimitive(value))
     fun setSetting(key: String, value: Double) = setSetting(key, JsonPrimitive(value))
+    fun setSetting(key: String, value: String) = setSetting(key, JsonPrimitive(value))
 
     // ------------------------------------------------------------ introduction
 
@@ -481,6 +508,56 @@ class Store(val db: Db, val prerequisites: Map<String, List<String>> = Curriculu
     fun sessionsToday(): Int =
         db.query("SELECT 1 FROM sessions WHERE mode='daily' AND end_ts IS NOT NULL AND n > 0 AND start_ts >= ?",
             listOf(dayStart(now()))).size
+
+    /** For the last [n] study days, oldest first: whether a quick session was finished that day. */
+    fun recentActivity(n: Int = 7): List<Boolean> {
+        val days = db.query("SELECT start_ts FROM sessions WHERE mode='daily' AND end_ts IS NOT NULL AND n > 0")
+            .map { dayStart(it.double("start_ts")) }.toSet()
+        val out = ArrayDeque<Boolean>()
+        var d = dayStart(now())
+        repeat(n) {
+            out.addFirst(d in days)
+            d = dayStart(d - DAY / 2)
+        }
+        return out.toList()
+    }
+
+    /**
+     * What's weakest right now, judged on each topic's latest attempts. Skills count as weak under the
+     * same thresholds [rescheduleSkill] uses (accuracy under 85%, or pace under 80% of target), and facts
+     * when at least a third of the latest answers were missed or their median time is over 1.5× target.
+     * A fact's first attempt is ignored, since a new fact is usually revealed rather than recalled.
+     */
+    fun weakSpots(maxSkills: Int = WEAK_SKILLS, maxCards: Int = WEAK_CARDS): WeakSpots {
+        class Try(val ok: Boolean, val timeMs: Long, val targetMs: Long)
+        fun Row.toTry() = Try(bool("correct") && !bool("hinted"), long("time_ms"), long("target_ms"))
+        val rows = db.query("SELECT kind, item_id, card_id, correct, hinted, time_ms, target_ms FROM attempts" +
+            " WHERE mode != 'benchmark' ORDER BY id")
+
+        val skills = rows.filter { it.string("kind") == "skill" && Content.isSkill(it.string("item_id")) }
+            .groupBy({ it.string("item_id") }, { it.toTry() })
+            .filter { (id, tries) -> tries.size >= WEAK_MIN_SKILL_ATTEMPTS && isIntroduced(id) }
+            .mapNotNull { (id, all) ->
+                val tries = all.takeLast(WEAK_SKILL_WINDOW)
+                val good = tries.filter { it.ok && it.timeMs > 0 }
+                val accuracy = good.size.toDouble() / tries.size
+                val pace = if (good.isEmpty()) 0.0 else median(good.map { minOf(PACE_CAP, it.targetMs.toDouble() / it.timeMs) })
+                if (accuracy < 0.85 || pace < 0.8) id to (1 - accuracy) + maxOf(0.0, 1 - pace) / 2 else null
+            }
+            .sortedByDescending { it.second }.take(maxSkills).map { it.first }
+
+        val cards = rows.filter { it.string("kind") == "card" && it.stringOrNull("card_id") in Content.CARDS }
+            .groupBy({ it.string("card_id") }, { it.toTry() })
+            .mapNotNull { (id, all) ->
+                val tries = all.drop(1).takeLast(WEAK_CARD_WINDOW)
+                if (tries.size < 2) return@mapNotNull null
+                val missed = tries.count { !it.ok }.toDouble() / tries.size
+                val slowness = median(tries.map { it.timeMs.toDouble() / maxOf(1L, it.targetMs) })
+                if (missed >= 1.0 / 3 || slowness > 1.5) id to missed + slowness / 10 else null
+            }
+            .sortedByDescending { it.second }.take(maxCards).map { it.first }
+        return WeakSpots(skills, cards)
+    }
 
     data class DayPace(val day: Double, val pace: Double, val accuracy: Double)
 

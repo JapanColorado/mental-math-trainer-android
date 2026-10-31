@@ -96,6 +96,7 @@ class Session(
     minutes: Double? = null,
     itemIds: List<String>? = null,
     val audio: Boolean = false,                             // Android only: problems are read aloud
+    focusCards: List<String> = emptyList(),                 // practice: drill just these facts (weak spots), off schedule
     val rng: Rng = Rng(),
     private val clock: () -> Double = { System.nanoTime() / 1e9 },
 ) {
@@ -123,6 +124,9 @@ class Session(
         private set
     private val skillIds = mutableListOf<String>()
     private val deckIds = mutableListOf<String>()
+    private val focusPool = focusCards.filter { it in Content.CARDS }
+    private val focusQueue = mutableListOf<String>()
+    private var lastFocusCard: String? = null
 
     init {
         if (mode == Mode.DAILY && minutes == null) budget = store.settingInt(Settings.SESSION_MINUTES) * 60.0
@@ -139,7 +143,7 @@ class Session(
                 benchmarkTotal = battery.size
             }
             Mode.PRACTICE -> {
-                val ids = itemIds?.takeIf { it.isNotEmpty() } ?: store.introduced().keys.toList()
+                val ids = itemIds?.takeIf { it.isNotEmpty() || focusPool.isNotEmpty() } ?: store.introduced().keys.toList()
                 skillIds += ids.filter { Content.isSkill(it) }
                 deckIds += ids.filter { Content.isDeck(it) }
             }
@@ -258,6 +262,10 @@ class Session(
             return cardItem(card, relearn = true)
         }
 
+        if (focusPool.isNotEmpty() && !overBudget && (skillIds.isEmpty() || rng.random() < 0.5)) {
+            return cardItem(nextFocusCard(), tag = "Weak spot")
+        }
+
         val card = if (overBudget) null else pickCard()
         val hasSkills = skillIds.isNotEmpty()
         val factShare = if (store.dueCards(deckIds).size > 20) 0.45 else 0.35
@@ -276,6 +284,16 @@ class Session(
         }
         if (mode == Mode.PRACTICE && deckIds.isNotEmpty()) return randomSeenCard()  // free practice: drill seen cards
         return null
+    }
+
+    /** Works through the pool in random order, then starts over. These reviews don't move a fact's schedule. */
+    private fun nextFocusCard(): String {
+        if (focusQueue.isEmpty()) {
+            focusQueue += focusPool
+            rng.shuffle(focusQueue)
+            if (focusQueue.size > 1 && focusQueue[0] == lastFocusCard) focusQueue.add(focusQueue.removeAt(0))
+        }
+        return focusQueue.removeAt(0).also { lastFocusCard = it }
     }
 
     private fun pickCard(): String? {
