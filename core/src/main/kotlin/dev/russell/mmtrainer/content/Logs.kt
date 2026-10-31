@@ -726,99 +726,173 @@ object Logs : ContentModule {
     private val L_LOGINT = Lesson(
         "Exact logarithms",
         "\n" +
-        "<p><b>log<sub>b</sub> x asks: \"b to what power gives x?\"</b> When x is a power of b, just count.</p>\n" +
-        "<ul>\n" +
-        "<li>log<sub>2</sub> 64 = 6 because 2<sup>6</sup> = 64. log<sub>5</sub> 125 = 3.</li>\n" +
-        "<li>Reciprocals give negatives: log<sub>2</sub>(1/8) = −3, log<sub>10</sub> 0.001 = −3.</li>\n" +
-        "<li>Roots give fractions: √x = x<sup>1/2</sup>, so log<sub>2</sub> √32 = 5/2.</li>\n" +
-        "</ul>\n" +
-        "<p><b>Fractional answers — rewrite both numbers as powers of a common root.</b> If\n" +
-        "b = r<sup>p</sup> and x = r<sup>q</sup>, then log<sub>b</sub> x = q/p.</p>\n" +
-        "<p>Example: log<sub>8</sub> 4. 8 = 2<sup>3</sup>, 4 = 2<sup>2</sup> → <b>2/3</b>.\n" +
-        "Check: 8<sup>2/3</sup> = (∛8)<sup>2</sup> = 2<sup>2</sup> = 4. ✓</p>\n" +
-        "<p>Example: log<sub>9</sub>(1/3). 9 = 3<sup>2</sup>, 1/3 = 3<sup>−1</sup> → <b>−1/2</b>.</p>\n" +
-        "<p>Your powers-of-2 table (to 2<sup>20</sup>) and cubes do most of the work: spot the root\n" +
-        "first (2, 3, 5, 10), then read off the two exponents. Type answers as fractions (2/3) or\n" +
-        "decimals (0.667).</p>\n",
+        "<h3>Count the power</h3>\n" +
+        "<p>log<sub>b</sub> x asks: \"b to what power gives x?\" When x is a power of b, just count.</p>\n" +
+        "<ex>2<sup>6</sup> = 64, so log<sub>2</sub> 64 = <b>6</b><br>" +
+        "5<sup>3</sup> = 125, so log<sub>5</sub>(125) = <b>3</b></ex>\n" +
+        "<h3>Reciprocals give negatives</h3>\n" +
+        "<p>A reciprocal is a negative power, so its log is negative.</p>\n" +
+        "<ex>log<sub>2</sub>(1/8) = <b>−3</b><br>" +
+        "log<sub>10</sub> 0.001 = <b>−3</b></ex>\n" +
+        "<h3>Roots give fractions</h3>\n" +
+        "<p>A square root halves the exponent: √x = x<sup>1/2</sup>.</p>\n" +
+        "<ex>32 = 2<sup>5</sup><br>" +
+        "√32 = 2<sup>5/2</sup><br>" +
+        "log<sub>2</sub> √32 = <b>5/2</b></ex>\n" +
+        "<h3>Fractional answers: find a common root</h3>\n" +
+        "<p>Rewrite both numbers as powers of one root. If b = r<sup>p</sup> and x = r<sup>q</sup>,\n" +
+        "then log<sub>b</sub> x = q/p.</p>\n" +
+        "<ex>log<sub>8</sub> 4<br>" +
+        "8 = 2<sup>3</sup> and 4 = 2<sup>2</sup>, so <b>2/3</b><br>" +
+        "Check: 8<sup>2/3</sup> = (∛8)<sup>2</sup> = 2<sup>2</sup> = 4 ✓</ex>\n" +
+        "<ex>log<sub>9</sub>(1/3)<br>" +
+        "9 = 3<sup>2</sup> and 1/3 = 3<sup>−1</sup>, so <b>−1/2</b></ex>\n" +
+        "<tip>Your powers-of-2 table (to 2<sup>20</sup>) and cubes do most of the work. Spot the root\n" +
+        "first (2, 3, 5, 10), then read off the two exponents.</tip>\n" +
+        "<p>Type answers as fractions (2/3) or decimals (0.667).</p>\n",
     )
 
     private val L_LOG10 = Lesson(
         "Common logarithms",
         "\n" +
-        "<p><b>Step 1 — scientific notation.</b> log(a × 10<sup>k</sup>) = k + log a, so only the\n" +
-        "mantissa a (between 1 and 10) needs thought: log 3 000 = 3 + 0.477 = 3.477;\n" +
-        "log 0.0007 = −4 + 0.845 = −3.155.</p>\n" +
-        "<p><b>Step 2 — factor the mantissa into digits.</b> Logs turn × into + and ÷ into −:</p>\n" +
-        "<ul>\n" +
-        "<li>4.8 = 6 × 8 / 10 → 0.778 + 0.903 − 1 = 0.681</li>\n" +
-        "<li>2.5 = 10 / 4 → 1 − 0.602 = 0.398; 1.75 = 7 / 4 → 0.845 − 0.602 = 0.243</li>\n" +
-        "</ul>\n" +
-        "<p><b>Step 3 — anything else: nearest anchor + linear correction.</b>\n" +
-        "log(a + Δ) ≈ log a + <b>0.434 · Δ/a</b> (0.434 = log e, the slope of ln converted to log).\n" +
-        "Use the closest number you can log exactly; keep Δ/a under ~5 % and the error is tiny.</p>\n" +
-        "<p>Example: log 6 130 = 3 + log 6.13. Nearest anchor 6 (0.778); Δ/a = 0.13/6 ≈ 0.022;\n" +
-        "× 0.434 ≈ 0.009 → 3.787 (true 3.7875).</p>\n" +
-        "<p>Example: log 1.3 — the digit 1 is too far, but 1.25 = 10/8 has log 1 − 0.903 = 0.097;\n" +
-        "0.434 × 0.05/1.25 ≈ 0.017 → 0.114 (true 0.1139).</p>\n" +
-        "<p>Useful extra anchors: 1.2 (0.079), 1.25 (0.097), 1.4 (0.146), 1.5 (0.176),\n" +
-        "1.6 (0.204), 1.8 (0.255).</p>\n",
+        "<h3>Step 1: scientific notation</h3>\n" +
+        "<p>log(a × 10<sup>k</sup>) = k + log a, so only the mantissa a (between 1 and 10) needs thought.</p>\n" +
+        "<ex>log 3 000 = 3 + 0.477 = <b>3.477</b><br>" +
+        "log 0.0007 = −4 + 0.845 = <b>−3.155</b></ex>\n" +
+        "<h3>Step 2: factor the mantissa into digits</h3>\n" +
+        "<p>Logs turn × into + and ÷ into −.</p>\n" +
+        "<ex>4.8 = 6 × 8 / 10<br>" +
+        "0.778 + 0.903 − 1 = <b>0.681</b></ex>\n" +
+        "<ex>2.5 = 10 / 4<br>" +
+        "1 − 0.602 = <b>0.398</b></ex>\n" +
+        "<ex>1.75 = 7 / 4<br>" +
+        "0.845 − 0.602 = <b>0.243</b></ex>\n" +
+        "<h3>Step 3: nearest anchor + linear correction</h3>\n" +
+        "<p>For anything else, start from the closest number you can log exactly.</p>\n" +
+        "<p>log(a + Δ) ≈ log a + <b>0.434 · Δ/a</b>. Here 0.434 = log e, the slope of ln converted to log.</p>\n" +
+        "<ex>log 6 130 = 3 + log 6.13<br>" +
+        "Nearest anchor: log 6 = 0.778<br>" +
+        "Δ/a = 0.13/6 ≈ 0.022<br>" +
+        "0.434 × 0.022 ≈ 0.009<br>" +
+        "3 + 0.778 + 0.009 = <b>3.787</b> (true 3.7875)</ex>\n" +
+        "<ex>log 1.3<br>" +
+        "The digit 1 is too far, so use 1.25 = 10/8<br>" +
+        "log 1.25 = 1 − 0.903 = 0.097<br>" +
+        "0.434 × 0.05/1.25 ≈ 0.017<br>" +
+        "0.097 + 0.017 = <b>0.114</b> (true 0.1139)</ex>\n" +
+        "<tip>Keep Δ/a under about 5 % and the error is tiny.</tip>\n" +
+        "<p>Useful extra anchors:</p>\n" +
+        "<table>\n" +
+        "<tr><th>Number</th><th>Log</th></tr>\n" +
+        "<tr><td>1.2</td><td>0.079</td></tr>\n" +
+        "<tr><td>1.25</td><td>0.097</td></tr>\n" +
+        "<tr><td>1.4</td><td>0.146</td></tr>\n" +
+        "<tr><td>1.5</td><td>0.176</td></tr>\n" +
+        "<tr><td>1.6</td><td>0.204</td></tr>\n" +
+        "<tr><td>1.8</td><td>0.255</td></tr>\n" +
+        "</table>\n",
     )
 
     private val L_ANTILOG = Lesson(
         "Powers of ten",
         "\n" +
-        "<p>Reverse a log: <b>10<sup>x</sup> = 10<sup>fraction</sup> × 10<sup>integer</sup></b>. Take the\n" +
-        "integer part <i>down</i> (floor), so the fractional part is always between 0 and 1:\n" +
-        "10<sup>−2.523</sup> = 10<sup>0.477</sup> × 10<sup>−3</sup>.</p>\n" +
-        "<p><b>Read the mantissa off your log table.</b> 0.477 = log 3, so 10<sup>3.477</sup> ≈ 3 000 and\n" +
-        "10<sup>−2.523</sup> ≈ 0.003. 0.5 → √10 ≈ 3.16.</p>\n" +
-        "<p><b>In between: nearest anchor, then correct linearly.</b> If the fraction is d above log a,\n" +
-        "10<sup>fraction</sup> ≈ a·(1 + d/0.434) — i.e. add a × d/0.434 (each 0.01 of log is about 2.3 %).</p>\n" +
-        "<p>Example: 10<sup>4.63</sup>. 0.63 is 0.028 above log 4 = 0.602 →\n" +
-        "4 + 4 × 0.028/0.434 ≈ 4 + 0.26 = 4.26 → <b>42 600</b> (true 42 658).</p>\n" +
-        "<p>Example: 10<sup>0.18</sup>: no digit is close, but log 1.5 = 0.477 − 0.301 = 0.176, so\n" +
-        "≈ 1.5 × (1 + 0.004/0.434) ≈ 1.51.</p>\n" +
-        "<p>Low fractions need the factored anchors: 0.079 → 1.2, 0.097 → 1.25, 0.146 → 1.4,\n" +
-        "0.176 → 1.5, 0.204 → 1.6, 0.255 → 1.8. Answer in any form: 42600, 4.26e4, 4.26x10^4.</p>\n",
+        "<p>This reverses a log.</p>\n" +
+        "<h3>Split the exponent</h3>\n" +
+        "<p><b>10<sup>x</sup> = 10<sup>fraction</sup> × 10<sup>integer</sup></b>. Take the integer part\n" +
+        "<i>down</i> (floor), so the fraction is always between 0 and 1.</p>\n" +
+        "<ex>10<sup>−2.523</sup> = 10<sup>0.477</sup> × 10<sup>−3</sup></ex>\n" +
+        "<h3>Read the mantissa off your log table</h3>\n" +
+        "<p>If the fraction is a log you know, the mantissa is that number.</p>\n" +
+        "<ex>0.477 = log 3<br>" +
+        "10<sup>3.477</sup> ≈ 3 000<br>" +
+        "10<sup>−2.523</sup> ≈ 0.003<br>" +
+        "0.5 → √10 ≈ 3.16</ex>\n" +
+        "<h3>In between: nearest anchor, then correct</h3>\n" +
+        "<p>If the fraction is d above log a, then 10<sup>fraction</sup> ≈ a·(1 + d/0.434). That is, add\n" +
+        "a × d/0.434.</p>\n" +
+        "<ex>10<sup>4.63</sup><br>" +
+        "0.63 is 0.028 above log 4 = 0.602<br>" +
+        "4 + 4 × 0.028/0.434 ≈ 4 + 0.26 = 4.26<br>" +
+        "≈ <b>42 600</b> (true 42 658)</ex>\n" +
+        "<ex>10<sup>0.18</sup><br>" +
+        "No digit is close, but log 1.5 = 0.477 − 0.301 = 0.176<br>" +
+        "0.18 − 0.176 = 0.004<br>" +
+        "1.5 × (1 + 0.004/0.434) ≈ <b>1.51</b></ex>\n" +
+        "<tip>Each 0.01 of log is about 2.3 %.</tip>\n" +
+        "<h3>Low fractions</h3>\n" +
+        "<p>These need the factored anchors.</p>\n" +
+        "<table>\n" +
+        "<tr><th>Fraction</th><th>Mantissa</th></tr>\n" +
+        "<tr><td>0.079</td><td>1.2</td></tr>\n" +
+        "<tr><td>0.097</td><td>1.25</td></tr>\n" +
+        "<tr><td>0.146</td><td>1.4</td></tr>\n" +
+        "<tr><td>0.176</td><td>1.5</td></tr>\n" +
+        "<tr><td>0.204</td><td>1.6</td></tr>\n" +
+        "<tr><td>0.255</td><td>1.8</td></tr>\n" +
+        "</table>\n" +
+        "<p>Answer in any form: 42600, 4.26e4, 4.26x10^4.</p>\n",
     )
 
     private val L_LN = Lesson(
         "Natural logarithms",
         "\n" +
-        "<p><b>Factor into 2, 3, 5, 7, 10 and e</b> and add the memorized logs\n" +
-        "(ln 2 = 0.693, ln 3 = 1.099, ln 5 = 1.609, ln 7 = 1.946, ln 10 = 2.303, ln e = 1):</p>\n" +
-        "<ul>\n" +
-        "<li>ln 12 = 2 ln 2 + ln 3 = 1.386 + 1.099 = 2.485</li>\n" +
-        "<li>ln 700 = ln 7 + 2 ln 10 = 1.946 + 4.606 = 6.552</li>\n" +
-        "<li>ln 0.25 = −2 ln 2 = −1.386; ln(3e<sup>2</sup>) = 1.099 + 2 = 3.099</li>\n" +
-        "</ul>\n" +
-        "<p><b>Anything else: anchor + Δ/a.</b> The slope of ln at a is 1/a, so\n" +
-        "ln(a + Δ) ≈ ln a + Δ/a. Pull out powers of ten first (each adds 2.303), then pick the nearest\n" +
-        "number you can factor.</p>\n" +
-        "<p>Example: ln 3 700 = ln 3.7 + 3 × 2.303. ln 3.7 ≈ ln 3.5 + 0.2/3.5, with\n" +
-        "ln 3.5 = ln 7 − ln 2 = 1.253 → 1.253 + 0.057 = 1.310; + 6.909 = <b>8.219</b> (true 8.216).</p>\n" +
-        "<p><b>Alternative:</b> ln x = 2.303 × log x, handy if you already know log x\n" +
-        "(ln 50 = 2.303 × 1.699 ≈ 3.91).</p>\n",
+        "<h3>Factor, then add</h3>\n" +
+        "<p>Factor into 2, 3, 5, 7, 10 and e, then add the memorized logs.</p>\n" +
+        "<table>\n" +
+        "<tr><th>x</th><th>ln x</th></tr>\n" +
+        "<tr><td>2</td><td>0.693</td></tr>\n" +
+        "<tr><td>3</td><td>1.099</td></tr>\n" +
+        "<tr><td>5</td><td>1.609</td></tr>\n" +
+        "<tr><td>7</td><td>1.946</td></tr>\n" +
+        "<tr><td>10</td><td>2.303</td></tr>\n" +
+        "<tr><td>e</td><td>1</td></tr>\n" +
+        "</table>\n" +
+        "<ex>ln 12 = 2 ln 2 + ln 3<br>" +
+        "1.386 + 1.099 = <b>2.485</b></ex>\n" +
+        "<ex>ln 700 = ln 7 + 2 ln 10<br>" +
+        "1.946 + 4.606 = <b>6.552</b></ex>\n" +
+        "<ex>ln 0.25 = −2 ln 2 = <b>−1.386</b><br>" +
+        "ln(3e<sup>2</sup>) = 1.099 + 2 = <b>3.099</b></ex>\n" +
+        "<h3>Anything else: anchor + Δ/a</h3>\n" +
+        "<p>The slope of ln at a is 1/a, so ln(a + Δ) ≈ ln a + Δ/a.</p>\n" +
+        "<p>Pull out powers of ten first (each adds 2.303), then pick the nearest number you can factor.</p>\n" +
+        "<ex>ln 3 700 = ln 3.7 + 3 × 2.303<br>" +
+        "ln 3.5 = ln 7 − ln 2 = 1.253<br>" +
+        "ln 3.7 ≈ ln 3.5 + 0.2/3.5<br>" +
+        "1.253 + 0.057 = 1.310<br>" +
+        "3 × 2.303 = 6.909<br>" +
+        "1.310 + 6.909 = <b>8.219</b> (true 8.216)</ex>\n" +
+        "<h3>Alternative: convert from log</h3>\n" +
+        "<p>ln x = 2.303 × log x.</p>\n" +
+        "<ex>ln 50 = 2.303 × 1.699 ≈ <b>3.91</b></ex>\n" +
+        "<tip>Handy if you already know log x.</tip>\n",
     )
 
     private val L_LOGB = Lesson(
         "Change of base",
         "\n" +
-        "<p><b>log<sub>b</sub> x = log x / log b</b> — any base, using common logs you can already do.</p>\n" +
-        "<p>Example: log<sub>3</sub> 50 = 1.699 / 0.477 ≈ 3.56. Sanity check: 3<sup>3</sup> = 27,\n" +
-        "3<sup>4</sup> = 81, and 50 sits between. ✓</p>\n" +
-        "<p><b>Base 2 shortcut.</b> 2<sup>10</sup> = 1 024 ≈ 10<sup>3</sup>, so\n" +
-        "<b>log<sub>2</sub> 10 ≈ 3.32</b> (exactly 1/0.301 = 3.322). Then</p>\n" +
-        "<ul>\n" +
-        "<li>log<sub>2</sub> 10<sup>6</sup> = 6 × 3.322 = 19.93 (2<sup>20</sup> ≈ a million ✓)</li>\n" +
-        "<li>log<sub>2</sub> 5 000 = log<sub>2</sub> 5 + 3 × 3.322 = 2.322 + 9.966 = 12.29</li>\n" +
-        "<li>log<sub>2</sub> 0.01 = −2 × 3.322 = −6.64</li>\n" +
-        "</ul>\n" +
-        "<p>Worth knowing: log<sub>2</sub> 3 = 1.585, log<sub>2</sub> 5 = 2.322, log<sub>2</sub> 7 = 2.807\n" +
-        "(each = log d / 0.301).</p>\n" +
-        "<p>For bases that aren't digits, log the base like any other number: log 13 = 1 + log 1.3 ≈\n" +
-        "1.114. Keep three decimals in both logs before dividing — the division magnifies errors when\n" +
-        "log b is small.</p>\n",
+        "<h3>The formula</h3>\n" +
+        "<p><b>log<sub>b</sub> x = log x / log b</b>. It works for any base, using common logs you can\n" +
+        "already do.</p>\n" +
+        "<ex>log<sub>3</sub> 50 = 1.699 / 0.477 ≈ <b>3.56</b><br>" +
+        "Check: 3<sup>3</sup> = 27 and 3<sup>4</sup> = 81, and 50 sits between ✓</ex>\n" +
+        "<h3>Base 2 shortcut</h3>\n" +
+        "<p>2<sup>10</sup> = 1 024 ≈ 10<sup>3</sup>, so <b>log<sub>2</sub> 10 ≈ 3.32</b>.\n" +
+        "To three decimals, 1/0.301 ≈ 3.322.</p>\n" +
+        "<ex>log<sub>2</sub>(10<sup>6</sup>) = 6 × 3.322 ≈ <b>19.93</b><br>" +
+        "2<sup>20</sup> ≈ a million ✓</ex>\n" +
+        "<ex>log<sub>2</sub> 5 000 = log<sub>2</sub> 5 + 3 × 3.322<br>" +
+        "2.322 + 9.966 ≈ <b>12.29</b></ex>\n" +
+        "<ex>log<sub>2</sub> 0.01 = −2 × 3.322 ≈ <b>−6.64</b></ex>\n" +
+        "<p>Worth knowing (each = log d / 0.301):</p>\n" +
+        "<ex>log<sub>2</sub> 3 = 1.585<br>" +
+        "log<sub>2</sub> 5 = 2.322<br>" +
+        "log<sub>2</sub> 7 = 2.807</ex>\n" +
+        "<h3>Bases that aren't digits</h3>\n" +
+        "<p>Log the base like any other number.</p>\n" +
+        "<ex>log 13 = 1 + log 1.3 ≈ 1.114</ex>\n" +
+        "<tip>Keep three decimals in both logs before dividing. The division magnifies errors when\n" +
+        "log b is small.</tip>\n",
     )
 
     override val SKILLS: List<Skill> = listOf(

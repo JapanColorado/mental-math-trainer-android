@@ -125,7 +125,7 @@ class EstimationTest {
         assertEquals(listOf(3, 3, 2), skills.map { it.levels.size })
         for (s in skills) {
             assertEquals("estimation", s.track)
-            assertTrue(s.lesson.body.length in 401..2999)
+            assertTrue(s.lesson.body.length in 401..4499)
             assertTrue(s.levels.all { it.targetSeconds > 0 })
         }
     }

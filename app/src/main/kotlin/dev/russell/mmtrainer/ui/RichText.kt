@@ -1,11 +1,22 @@
 package dev.russell.mmtrainer.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
@@ -13,7 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -27,7 +41,7 @@ import androidx.compose.ui.unit.em
 
 /*
  * Renders the content's rich-text subset (see content/Base.kt): <p>, <h3>, <ul>/<li>, <table>,
- * <br>, and inline <b>, <i>, <sup>, <sub>, <span style="color:…">. ASCII whitespace collapses as
+ * <ex> (a worked example), <tip> (a usage note), <br>, and inline <b>, <i>, <sup>, <sub>, <span style="color:…">. ASCII whitespace collapses as
  * in HTML; thin spaces and other unicode spacing are kept.
  */
 
@@ -35,6 +49,8 @@ sealed interface RichBlock {
     data class Para(val text: AnnotatedString) : RichBlock
     data class Heading(val text: AnnotatedString) : RichBlock
     data class Bullet(val text: AnnotatedString) : RichBlock
+    data class Example(val text: AnnotatedString) : RichBlock
+    data class Tip(val text: AnnotatedString) : RichBlock
     data class Table(val rows: List<List<AnnotatedString>>) : RichBlock
 }
 
@@ -75,6 +91,8 @@ fun parseRich(html: String): List<RichBlock> {
             blocks += when (kind) {
                 "h3" -> RichBlock.Heading(s)
                 "li" -> RichBlock.Bullet(s)
+                "ex" -> RichBlock.Example(s)
+                "tip" -> RichBlock.Tip(s)
                 else -> RichBlock.Para(s)
             }
         }
@@ -93,7 +111,7 @@ fun parseRich(html: String): List<RichBlock> {
         val attrs = m.groupValues[3]
         when (tag) {
             "br" -> b.append("\n")
-            "p", "h3", "li", "div" -> {
+            "p", "h3", "li", "div", "ex", "tip" -> {
                 flush()
                 kind = if (closing) "p" else tag
             }
@@ -162,13 +180,21 @@ private fun pushInline(b: AnnotatedString.Builder, tag: String) {
     b.pushStyle(style)
 }
 
+private fun RichBlock.plainText(): AnnotatedString = when (this) {
+    is RichBlock.Para -> text
+    is RichBlock.Heading -> text
+    is RichBlock.Example -> text
+    is RichBlock.Tip -> text
+    is RichBlock.Bullet -> text
+    is RichBlock.Table -> AnnotatedString("")
+}
+
 /** Inline-only rich text (prompts, answers, notes): everything joined into one Text. */
 fun richInline(html: String): AnnotatedString = buildAnnotatedString {
     parseRich(html).forEachIndexed { i, block ->
         if (i > 0) append("\n")
         when (block) {
-            is RichBlock.Para -> append(block.text)
-            is RichBlock.Heading -> append(block.text)
+            is RichBlock.Para, is RichBlock.Heading, is RichBlock.Example, is RichBlock.Tip -> append(block.plainText())
             is RichBlock.Bullet -> { append("• "); append(block.text) }
             is RichBlock.Table -> block.rows.forEach { r -> r.forEachIndexed { j, c -> if (j > 0) append("   "); append(c) }; append("\n") }
         }
@@ -188,7 +214,22 @@ fun RichText(
         for (block in blocks) {
             when (block) {
                 is RichBlock.Para -> Text(block.text, style = style, textAlign = textAlign)
-                is RichBlock.Heading -> Text(block.text, style = Type.h2, modifier = Modifier.padding(top = 6.dp))
+                is RichBlock.Heading -> Text(block.text, style = Type.h2,
+                    modifier = Modifier.padding(top = 8.dp).semantics { heading() })
+                is RichBlock.Example -> Row(
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+                        .clip(RoundedCornerShape(10.dp)).background(Palette.SURFACE_2),
+                ) {
+                    Box(Modifier.width(4.dp).fillMaxHeight().background(Palette.ACCENT))
+                    Text(block.text, style = style.copy(fontFeatureSettings = "tnum"),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp))
+                }
+                is RichBlock.Tip -> Row(verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Outlined.Lightbulb, contentDescription = "Tip", tint = Palette.ACCENT,
+                        modifier = Modifier.padding(top = 1.dp).size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(block.text, style = style.copy(color = Palette.MUTED))
+                }
                 is RichBlock.Bullet -> Row {
                     Text("•", style = style, color = Palette.ACCENT)
                     Spacer(Modifier.width(10.dp))

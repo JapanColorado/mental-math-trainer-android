@@ -18,6 +18,8 @@ import dev.russell.mmtrainer.py.pyRound
  * All user-facing strings (prompts, explanations, lessons, notes) are rich text: a small HTML
  * subset (<b>, <i>, <sup>, <sub>, <br>, <p>, <ul>/<li>, <h3>, <table>) plus unicode symbols
  * (× ÷ − √ ∛ π ° ≈ ·), rendered by the app's RichText composable. No CSS or images.
+ * Lessons also use <ex> (a worked example, one step per <br>-separated line) and <tip> (a short
+ * "when to use it" note). LessonsTest checks every "a + b = c" written in a lesson.
  */
 
 data class Problem(

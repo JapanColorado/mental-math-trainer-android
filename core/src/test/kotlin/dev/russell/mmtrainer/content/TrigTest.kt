@@ -91,7 +91,7 @@ class TrigTest {
         assertEquals(listOf(2, 3, 2, 2), Trig.SKILLS.map { it.levels.size })
         for (s in Trig.SKILLS) {
             assertEquals("trig", s.track)
-            assertTrue(s.lesson.body.length in 401..2999)
+            assertTrue(s.lesson.body.length in 401..4499)
         }
     }
 

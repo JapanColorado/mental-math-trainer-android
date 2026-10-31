@@ -153,16 +153,25 @@ object Fractions : ContentModule {
         "<tr><td>1/7 = 0.142857…</td><td>1/9 = 0.111…</td><td>1/11 = 0.0909…</td><td>1/12 = 0.0833</td></tr>\n" +
         "<tr><td>1/13 ≈ 0.0769</td><td>1/17 ≈ 0.0588</td><td>1/19 ≈ 0.0526</td><td>1/15 = 0.0667</td></tr>\n" +
         "</table>\n" +
-        "<p><b>Terminating denominators</b> (2, 4, 5, 8, 16, 20, 25, 40): scale to a power of 10.\n" +
-        "13/40 = 325/1 000 = <b>0.325</b>; 7/25 = 28/100 = <b>0.28</b>; 5/8 = 5 × 0.125 = <b>0.625</b>.</p>\n" +
-        "<p><b>Patterns:</b> n/9 = 0.nnn… (7/9 = 0.778). n/11 repeats 9n (7/11 → 63 → 0.6363…).\n" +
-        "n/7 is the cycle 142857 started at a different digit: 1/7 = 0.142857, 2/7 = 0.285714,\n" +
-        "3/7 = 0.428571, 4/7 = 0.571428, 5/7 = 0.714285, 6/7 = 0.857142.</p>\n" +
-        "<p><b>Everything else: a/b = a × (1/b).</b> 5/17 ≈ 5 × 0.0588 = <b>0.294</b>. If a is more\n" +
-        "than half of b, go from 1: 15/17 = 1 − 2/17 ≈ 1 − 0.118 = <b>0.882</b>.</p>\n" +
-        "<p><b>Improper fractions:</b> split off the whole part first: 23/7 = 3 + 2/7 = 3 + 0.286 =\n" +
-        "<b>3.286</b>.</p>\n" +
-        "<p>Answers are to 3 decimal places — round, don't truncate (2/3 = 0.667).</p>\n")
+        "<h3>Terminating denominators</h3>\n" +
+        "<p>For denominators 2, 4, 5, 8, 16, 20, 25 and 40, scale to a power of 10.</p>\n" +
+        "<ex>13/40 = 325/1 000 = <b>0.325</b><br>7/25 = 28/100 = <b>0.28</b><br>" +
+        "5/8 = 5 × 0.125 = <b>0.625</b></ex>\n" +
+        "<h3>Repeating patterns</h3>\n" +
+        "<p><b>n/9</b> repeats n. <b>n/11</b> repeats 9n.</p>\n" +
+        "<ex>7/9 = 0.777… ≈ <b>0.778</b><br>7 × 9 = 63, so 7/11 = <b>0.6363…</b></ex>\n" +
+        "<p><b>n/7</b> is the cycle 142857 started at a different digit.</p>\n" +
+        "<ex>1/7 = 0.142857…<br>2/7 = 0.285714…<br>3/7 = 0.428571…<br>4/7 = 0.571428…<br>5/7 = 0.714285…<br>" +
+        "6/7 = 0.857142…</ex>\n" +
+        "<h3>Everything else</h3>\n" +
+        "<p><b>a/b = a × (1/b).</b> Take the reciprocal, then multiply.</p>\n" +
+        "<ex>5/17 ≈ 5 × 0.0588 = <b>0.294</b></ex>\n" +
+        "<p>If a is more than half of b, go from 1.</p>\n" +
+        "<ex>15/17 = 1 − 2/17<br>≈ 1 − 0.118 = <b>0.882</b></ex>\n" +
+        "<h3>Improper fractions</h3>\n" +
+        "<p>Split off the whole part first.</p>\n" +
+        "<ex>23/7 = 3 + 2/7<br>≈ 3 + 0.286 = <b>3.286</b></ex>\n" +
+        "<tip>Answers are to 3 decimal places. Round, don't truncate: 2/3 ≈ 0.667.</tip>\n")
 
     private val S_FRAC = Skill("s_frac", "Fractions → decimals", TRACK, FRAC_LESSON, listOf(
         Level("denominators 2, 4, 5, 8, 16, 20, 25, 40", 3.0,
@@ -378,20 +387,36 @@ object Fractions : ContentModule {
 
     private val PCT_LESSON = Lesson("Percentages",
         "\n" +
-        "<p><b>Building blocks.</b> 10% = move the decimal point; 1% = move it twice. Everything else is\n" +
-        "built from these: 17% of 340 → 10% = 34, 1% = 3.4, 7% = 23.8 → <b>57.8</b>.\n" +
-        "5% = half of 10%; 15% = 10% + 5%; 25% = ÷ 4; 12.5% = ÷ 8; 92% = 100% − 8%.</p>\n" +
-        "<p><b>Swap trick: x% of y = y% of x.</b> 18% of 50 = 50% of 18 = <b>9</b>.\n" +
-        "4% of 75 = 75% of 4 = <b>3</b>.</p>\n" +
-        "<p><b>Percent change = change ÷ starting value.</b> 80 → 92: +12 / 80 = 0.15 → <b>+15%</b>.\n" +
-        "Always divide by where you <i>started</i>. Quick estimate: find 1% of the start (0.8) and ask\n" +
-        "how many of those fit in the change.</p>\n" +
-        "<p><b>Successive changes multiply.</b> +20% then −15%: 1.2 × 0.85 = 1.02 → <b>+2%</b>, not +5%.\n" +
-        "Shortcut: a + b + ab/100 = 20 − 15 − 3 = 2. (+10% then −10% is −1%.)</p>\n" +
-        "<p><b>Reverse percent divides.</b> \"After a 25% increase it's 150\": 150 = 1.25 × x, so\n" +
-        "x = 150 ÷ 1.25 = 150 × 4/5 = <b>120</b>. Subtracting 25% of 150 (giving 112.5) is the classic\n" +
-        "mistake. Know the fraction forms: 1.25 = 5/4, 1.2 = 6/5, 0.8 = 4/5, 0.75 = 3/4,\n" +
-        "1.125 = 9/8, 0.875 = 7/8.</p>\n")
+        "<h3>Building blocks</h3>\n" +
+        "<p>10% = move the decimal point. 1% = move it twice. Build everything else from these.</p>\n" +
+        "<ex>17% of 340<br>10% = 34<br>1% = 3.4<br>7% = 7 × 3.4 = 23.8<br>34 + 23.8 = <b>57.8</b></ex>\n" +
+        "<ul>\n" +
+        "<li>5% = half of 10%</li>\n" +
+        "<li>15% = 10% + 5%</li>\n" +
+        "<li>25% = ÷ 4</li>\n" +
+        "<li>12.5% = ÷ 8</li>\n" +
+        "<li>92% = 100% − 8%</li>\n" +
+        "</ul>\n" +
+        "<h3>Swap trick</h3>\n" +
+        "<p><b>x% of y = y% of x.</b> Pick the easier order.</p>\n" +
+        "<ex>18% of 50 = 50% of 18 = <b>9</b><br>4% of 75 = 75% of 4 = <b>3</b></ex>\n" +
+        "<h3>Percent change</h3>\n" +
+        "<p>Change ÷ starting value. Always divide by where you <i>started</i>.</p>\n" +
+        "<ex>80 → 92<br>92 − 80 = 12<br>12/80 = 0.15 → <b>+15%</b></ex>\n" +
+        "<tip>Quick estimate: find 1% of the start (0.8), then ask how many of those fit in the change: 12 ÷ 0.8 = 15.</tip>\n" +
+        "<h3>Successive changes</h3>\n" +
+        "<p>Changes multiply. They don't add.</p>\n" +
+        "<ex>+20% then −15%<br>1.2 × 0.85 = 1.02<br>→ <b>+2%</b>, not +5%</ex>\n" +
+        "<p>Shortcut: a + b + ab/100.</p>\n" +
+        "<ex>a = 20, b = −15, so ab/100 = −3<br>20 − 15 − 3 = <b>2</b></ex>\n" +
+        "<tip>+10% then −10% is −1%, not 0.</tip>\n" +
+        "<h3>Reverse percent</h3>\n" +
+        "<p>To undo a change, divide by the factor.</p>\n" +
+        "<ex>\"After a 25% increase it's 150\"<br>150 = 1.25 × x<br>x = 150 ÷ 1.25 = 150 × 4/5<br>" +
+        "x = <b>120</b></ex>\n" +
+        "<tip>The classic mistake is subtracting 25% of 150, giving 112.5.</tip>\n" +
+        "<p>Know the fraction forms:</p>\n" +
+        "<ex>1.25 = 5/4, 1.2 = 6/5<br>0.8 = 4/5, 0.75 = 3/4<br>1.125 = 9/8, 0.875 = 7/8</ex>\n")
 
     private val S_PCT = Skill("s_pct", "Percentages", TRACK, PCT_LESSON, listOf(
         Level("friendly % of friendly numbers", 4.0, ::genPct1),

@@ -406,61 +406,86 @@ object Facts : ContentModule {
     // ---------------------------------------------------------------- lessons
 
     private val TIMES_LESSON = Lesson("Times tables, 2–12", """
-<p>Every multi-digit product you will ever do mentally is a stack of single-digit products.
-If 7 × 8 costs you a second of hesitation, 47 × 68 costs you four of them plus the strain of
-holding intermediate results. The goal here is <b>instant recall</b> — under a second, no
-counting up, no rederiving.</p>
-<p>There are only 55 facts once you notice a × b = b × a and drop the trivial ×1 and ×10.
-Most of them collapse to a few patterns:</p>
-<ul>
-<li><b>×2, ×4, ×8</b>: double once, twice, three times.</li>
-<li><b>×5</b>: half of ×10. <b>×9</b>: ×10 minus one copy (the digits sum to 9).</li>
-<li><b>×11</b>: repeat the digit. <b>×12</b>: ×10 plus ×2.</li>
-<li><b>Neighbours of squares</b>: (n−1)(n+1) = n² − 1, so 6 × 8 = 49 − 1 = 48.</li>
-</ul>
-<p>The genuinely hard ones are the "middle" facts: 6 × 7 = 42, 6 × 8 = 48, 7 × 7 = 49,
-7 × 8 = 56 (5-6-7-8), 7 × 9 = 63, 8 × 8 = 64. Use the derivation when you miss, but the aim is
-to stop needing it: say the fact aloud, then retype it from memory.</p>
+<p>Every multi-digit product is a stack of single-digit products. If 7 × 8 costs a second of
+hesitation, 47 × 68 costs four of them, plus the strain of holding intermediate results.</p>
+<p>The goal is <b>instant recall</b>: under a second, no counting up, no rederiving. There are only
+55 facts once you use a × b = b × a and drop the trivial ×1 and ×10.</p>
+<h3>×2, ×4, ×8</h3>
+<p>Double once, twice or three times.</p>
+<ex>8 × 7<br>7 + 7 = 14<br>14 + 14 = 28<br>28 + 28 = <b>56</b></ex>
+<h3>×5</h3>
+<p>Half of ×10.</p>
+<ex>5 × 8<br>10 × 8 = 80<br>80 ÷ 2 = <b>40</b></ex>
+<h3>×9</h3>
+<p>×10 minus one copy. The digits of the answer sum to 9 (except 9 × 11 = 99).</p>
+<ex>9 × 7<br>10 × 7 = 70<br>70 − 7 = <b>63</b><br>Check: 6 + 3 = 9</ex>
+<h3>×11 and ×12</h3>
+<p>×11 repeats a single digit: 11 × 6 = 66. ×12 is ×10 plus ×2.</p>
+<ex>12 × 7<br>10 × 7 = 70<br>2 × 7 = 14<br>70 + 14 = <b>84</b></ex>
+<h3>Neighbours of squares</h3>
+<p>Numbers either side of n multiply to one less than its square: (n−1)(n+1) = n² − 1.</p>
+<ex>6 × 8<br>7² = 49<br>49 − 1 = <b>48</b></ex>
+<h3>The hard middle</h3>
+<p>These are the genuinely hard ones.</p>
+<ex>6 × 7 = 42<br>6 × 8 = 48<br>7 × 7 = 49<br>7 × 8 = 56 (5-6-7-8)<br>7 × 9 = 63<br>8 × 8 = 64</ex>
+<tip>Use the derivation when you miss, but aim to stop needing it: say the fact aloud, then retype it from memory.</tip>
 """)
 
     private val TEENS_LESSON = Lesson("Teens × one digit", """
 <p>Products like 17 × 6 = 102 or 14 × 8 = 112 turn up constantly: in percentages, in unit
-conversions, inside every two-digit multiplication. They are just past the times table, so it
-pays to know them by heart rather than compute them each time.</p>
-<p>The derivation is always the same: <b>split off the ten</b>.
-17 × 6 = 10 × 6 + 7 × 6 = 60 + 42 = 102. Some are faster another way:</p>
-<ul>
-<li><b>19 × m</b> = 20 × m − m: 19 × 7 = 140 − 7 = 133.</li>
-<li><b>15 × m</b> = 10m plus half of 10m: 15 × 8 = 80 + 40 = 120.</li>
-<li><b>18 × m</b> can also be 20m − 2m: 18 × 7 = 140 − 14 = 126.</li>
-</ul>
-<p>Practise until the answer arrives before the derivation does. The landmarks worth noticing:
-12 × 8 = 96, 13 × 7 = 91, 14 × 7 = 98, 16 × 6 = 96, 17 × 6 = 102, 18 × 6 = 108,
-19 × 9 = 171, and 16 × 8 = 128 and 16 × 4 = 64 (powers of 2).</p>
+conversions, inside every two-digit multiplication. They sit just past the times table, so know
+them by heart rather than compute them each time.</p>
+<h3>Split off the ten</h3>
+<p>This derivation always works.</p>
+<ex>17 × 6<br>10 × 6 = 60<br>7 × 6 = 42<br>60 + 42 = <b>102</b></ex>
+<h3>19 × m and 18 × m</h3>
+<p>Count down from 20. 19 × m is 20 × m − m. 18 × m can also be 20m − 2m.</p>
+<ex>19 × 7<br>20 × 7 = 140<br>140 − 7 = <b>133</b></ex>
+<ex>18 × 7<br>20 × 7 = 140<br>2 × 7 = 14<br>140 − 14 = <b>126</b></ex>
+<h3>15 × m</h3>
+<p>Take 10m, then add half of 10m.</p>
+<ex>15 × 8<br>10 × 8 = 80<br>80 ÷ 2 = 40<br>80 + 40 = <b>120</b></ex>
+<tip>Use these for 19, 18 and 15, where they beat splitting off the ten.</tip>
+<h3>Landmarks</h3>
+<p>Practise until the answer arrives before the derivation does. These are worth noticing.</p>
+<ex>12 × 8 = 96<br>13 × 7 = 91<br>14 × 7 = 98<br>16 × 6 = 96<br>17 × 6 = 102<br>18 × 6 = 108<br>19 × 9 = 171<br>16 × 8 = 128 (power of 2)<br>16 × 4 = 64 (power of 2)</ex>
 """)
 
     private val SQUARES_LESSON = Lesson("Squares 11–30", """
-<p>Squares are the backbone of fast multiplication. With them, any product of two numbers that
-are close together becomes a subtraction: <b>a × b = m² − d²</b>, where m is their midpoint
-and d half their gap. So 23 × 27 = 25² − 2² = 625 − 4 = 621, and 18 × 22 = 400 − 4 = 396.
-They also give you square roots for free: √500 ≈ 22.4 because 22² = 484 and 23² = 529.</p>
-<p>Three derivations to fall back on while memorizing:</p>
-<ul>
-<li><b>Ends in 5</b>: multiply the tens digit by the next integer, append 25.
-25² = 2 × 3 | 25 = 625.</li>
-<li><b>Teens</b>: (n + units) × 10 + units². 17² = 240 + 49 = 289.</li>
-<li><b>Round to a ten</b>: n² = (n − d)(n + d) + d². 28² = 30 × 26 + 4 = 784.</li>
-</ul>
-<p>Worth knowing cold: 16² = 256 and 32² = 1024 (powers of two), 24² = 576, 27² = 729 = 9³,
-and 29² = 900 − 60 + 1 = 841 (so 31² = 900 + 60 + 1 = 961).</p>
+<p>Squares are the backbone of fast multiplication, and they give you square roots too.</p>
+<h3>Products of close numbers</h3>
+<p>Any product of two numbers close together becomes a subtraction: <b>a × b = m² − d²</b>, where m
+is their midpoint and d is half their gap.</p>
+<ex>23 × 27<br>m = 25, d = 2<br>25² − 2²<br>625 − 4 = <b>621</b></ex>
+<ex>18 × 22<br>m = 20, d = 2<br>400 − 4 = <b>396</b></ex>
+<h3>Square roots</h3>
+<p>Two neighbouring squares bracket the root.</p>
+<ex>√500<br>22² = 484<br>23² = 529<br>So √500 ≈ <b>22.4</b></ex>
+<h3>Ends in 5</h3>
+<p>Multiply the tens digit by the next integer, then append 25.</p>
+<ex>25²<br>2 × 3 = 6<br>Append 25: <b>625</b></ex>
+<h3>Teens</h3>
+<p>Use (n + units) × 10 + units².</p>
+<ex>17²<br>17 + 7 = 24<br>24 × 10 = 240<br>7² = 49<br>240 + 49 = <b>289</b></ex>
+<h3>Round to a ten</h3>
+<p>Use n² = (n − d)(n + d) + d², choosing d so one factor is a round ten.</p>
+<ex>28², with d = 2<br>30 × 26 = 780<br>2² = 4<br>780 + 4 = <b>784</b></ex>
+<tip>These three derivations are for falling back on while memorizing.</tip>
+<h3>Worth knowing cold</h3>
+<ex>16² = 256 (power of two)<br>32² = 1024 (power of two)<br>24² = 576<br>27² = 729 = 9³</ex>
+<ex>29²<br>900 − 60 + 1 = <b>841</b><br>31²<br>900 + 60 + 1 = <b>961</b></ex>
 """)
 
     private val CUBES_LESSON = Lesson("Cubes", """
-<p>Cubes matter for volumes (a 12-inch cube is 1728 in³), for cube roots, and for
-recognising numbers: if you see 343 or 729 or 1331 you should feel the 7, 9 or 11 behind it.
-Knowing them also makes cube roots fast: ∛600 is between 8 (512) and 9 (729), roughly 8.4.</p>
-<p>Each cube is the square times the base again: 7³ = 7 × 49 = 343, 12³ = 12 × 144 = 1728.
-A few have extra hooks:</p>
+<p>Cubes matter for volumes (a 12-inch cube is 1728 in³), for cube roots, and for recognising
+numbers: 343, 729 or 1331 should make you feel the 7, 9 or 11 behind them.</p>
+<h3>Square times base</h3>
+<p>Each cube is the square times the base again.</p>
+<ex>7³ = 7 × 49 = <b>343</b><br>12³ = 12 × 144 = <b>1728</b></ex>
+<h3>Cube roots</h3>
+<p>Bracket the number between two cubes.</p>
+<ex>∛600<br>8³ = 512<br>9³ = 729<br>Between 8 and 9, roughly <b>8.4</b></ex>
+<h3>Extra hooks</h3>
 <ul>
 <li>4³ = 64 and 8³ = 512 are powers of two (2⁶, 2⁹).</li>
 <li>5³ = 125 = 1000/8, the reason 1/8 = 0.125.</li>
@@ -468,140 +493,188 @@ A few have extra hooks:</p>
 <li>11³ = 1331 is row 3 of Pascal's triangle.</li>
 <li>6³ = 216 = 3³ + 4³ + 5³.</li>
 </ul>
-<p>Also notice the last digits: cubes of 1–9 end in 1, 8, 7, 4, 5, 6, 3, 2, 9 — every digit
-appears once, so the last digit of a perfect cube tells you the last digit of its root.</p>
+<h3>Last digits</h3>
+<p>Cubes of 1–9 end in 1, 8, 7, 4, 5, 6, 3, 2, 9. Every digit appears once, so the last digit of a
+perfect cube tells you the last digit of its root.</p>
+<ex>343 ends in 3, so its root ends in <b>7</b><br>512 ends in 2, so its root ends in <b>8</b></ex>
 """)
 
     private val POW2_LESSON = Lesson("Powers of two", """
-<p>The single most useful fact here is <b>2¹⁰ = 1024 ≈ 10³</b>. It converts between doubling
-and powers of ten: 2²⁰ ≈ 10⁶, 2³⁰ ≈ 10⁹, 2⁴⁰ ≈ 10¹². So 2³⁴ = 2⁴ × 2³⁰ ≈ 16 × 10⁹. It is
-also why log<sub>10</sub> 2 ≈ 0.3 (ten doublings ≈ three decades).</p>
-<p>Powers of two show up everywhere: doubling times and compound growth, computer memory,
-halving in binary search, and the "rule of 70" problems later on. They also give you
-reciprocals: 1/8 = 0.125, 1/16 = 0.0625, 1/32 = 0.03125.</p>
-<p>How to learn them:</p>
-<ul>
-<li>Up to 2¹⁰ = 1024, just double: 16, 32, 64, 128, 256, 512, 1024.</li>
-<li>Above that, split off 2¹⁰: 2¹³ = 8 × 1024 = 8192; 2¹⁶ = 64 × 1024 = 65 536.</li>
-<li>Rhythm helps: 1024, 2048, 4096, 8192, 16 384, 32 768, 65 536 — say them as a chant.</li>
-</ul>
-<p>Negative powers are just halvings of 1: 0.5, 0.25, 0.125, 0.0625, 0.03125.</p>
+<p>Powers of two show up in doubling times and compound growth, computer memory, halving in binary
+search, and the "rule of 70" problems later on.</p>
+<h3>The key fact</h3>
+<p><b>2¹⁰ = 1024 ≈ 10³</b> converts between doubling and powers of ten. It is also why
+log<sub>10</sub> 2 ≈ 0.3: ten doublings ≈ three decades.</p>
+<ex>2²⁰ ≈ 10⁶<br>2³⁰ ≈ 10⁹<br>2⁴⁰ ≈ 10¹²<br>2³⁴ = 2⁴ × 2³⁰ ≈ <b>16 × 10⁹</b></ex>
+<h3>Up to 2¹⁰</h3>
+<p>Just double.</p>
+<ex>16, 32, 64, 128, 256, 512, <b>1024</b></ex>
+<h3>Above 2¹⁰</h3>
+<p>Split off 2¹⁰.</p>
+<ex>2¹³ = 8 × 1024 = <b>8192</b><br>2¹⁶ = 64 × 1024 = <b>65 536</b></ex>
+<tip>Rhythm helps. Say them as a chant: 1024, 2048, 4096, 8192, 16 384, 32 768, 65 536.</tip>
+<h3>Negative powers</h3>
+<p>These are just halvings of 1: 0.5, 0.25, 0.125, 0.0625, 0.03125. They also give you reciprocals.</p>
+<ex>1/8 = 0.125<br>1/16 = 0.0625<br>1/32 = 0.03125</ex>
 """)
 
     private val POWERS_LESSON = Lesson("Small-integer powers", """
-<p>Powers of 3, 5, 6 and 7 come up in probability (6⁵ = 7776 dice outcomes), combinatorics,
-compound growth, and in checking logarithms: 3¹⁰ = 59 049 ≈ 6 × 10⁴ tells you
-10 × log 3 ≈ 4.77, i.e. log 3 ≈ 0.477. Recognising them also lets you spot that 2401 is 7⁴
-or 15 625 is 5⁶ = 125².</p>
-<p>Build each from one you already know rather than memorizing in isolation:</p>
-<ul>
-<li><b>Square a square</b>: 3⁸ = 81² = 6561, 6⁴ = 36² = 1296, 7⁴ = 49² = 2401.</li>
-<li><b>One more factor</b>: 3⁷ = 3 × 729 = 2187, 7⁵ = 7 × 2401 = 16 807.</li>
-<li><b>Powers of 5 are powers of 10 over powers of 2</b>: 5⁶ = 10⁶ / 64 = 15 625.</li>
-<li><b>Powers of 4 and 8 are powers of 2</b>: 4⁵ = 2¹⁰, 8⁴ = 2¹².</li>
-<li><b>Powers of 11</b> follow Pascal's triangle: 121, 1331, 14 641.</li>
-</ul>
-<p>The 3-chain is worth chanting: 9, 27, 81, 243, 729, 2187, 6561, 19 683, 59 049.</p>
+<p>Powers of 3, 5, 6 and 7 come up in probability (6⁵ = 7776 dice outcomes), combinatorics and
+compound growth. Recognising them lets you spot that 2401 is 7⁴ or 15 625 is 5⁶ = 125².</p>
+<p>Build each from one you already know rather than memorizing in isolation.</p>
+<h3>Square a square</h3>
+<p>For an even exponent, square the power at half the exponent.</p>
+<ex>3⁸ = 81² = <b>6561</b><br>6⁴ = 36² = <b>1296</b><br>7⁴ = 49² = <b>2401</b></ex>
+<h3>One more factor</h3>
+<p>Multiply the power below by the base.</p>
+<ex>3⁷ = 3 × 729 = <b>2187</b><br>7⁵ = 7 × 2401 = <b>16 807</b></ex>
+<h3>Powers of 5</h3>
+<p>They are powers of 10 over powers of 2.</p>
+<ex>5⁶ = 10⁶ / 64 = <b>15 625</b></ex>
+<h3>Powers of 4 and 8</h3>
+<p>They are powers of 2.</p>
+<ex>4⁵ = 2¹⁰<br>8⁴ = 2¹²</ex>
+<h3>Powers of 11</h3>
+<p>They follow Pascal's triangle.</p>
+<ex>121, 1331, 14 641</ex>
+<h3>The 3-chain</h3>
+<p>This one is worth chanting.</p>
+<ex>9, 27, 81, 243, 729, 2187, 6561, 19 683, 59 049</ex>
+<h3>Checking logarithms</h3>
+<p>Powers also check logs.</p>
+<ex>3¹⁰ = 59 049 ≈ 6 × 10⁴<br>10 × log 3 ≈ 4.77<br>So log 3 ≈ <b>0.477</b></ex>
 """)
 
     private val RECIP_LESSON = Lesson("Reciprocals and common fractions", """
-<p>Division is slow; multiplication is fast. Knowing reciprocals lets you turn one into the
-other: ÷ 8 is × 0.125, ÷ 7 is × 0.1429, ÷ 16 is × 0.0625. So 350 ÷ 7 is easy anyway, but
-37 ÷ 7 ≈ 37 × 0.143 ≈ 5.29, and 91 ÷ 16 = 91 × 0.0625 ≈ 5.69. Fractions are also how you
-convert percentages and ratios in your head: 5/8 = 62.5 %, 3/7 ≈ 42.9 %.</p>
-<p>Type answers to <b>3 decimal places</b> (or exactly, for the ones that terminate).</p>
-<ul>
-<li><b>Eighths and sixteenths</b> are multiples of 0.125 and 0.0625.</li>
-<li><b>Ninths</b>: n/9 = 0.nnn…. <b>Elevenths</b>: n/11 repeats 9n (3/11 = 0.2727…).</li>
-<li><b>Sevenths</b> all use the cyclic digits 142857: 1/7 = 0.142857…, 2/7 = 0.285714…,
-3/7 = 0.428571…. Start at the right place by estimating (3/7 is a bit under 0.43).</li>
-<li><b>Halve to get the next</b>: 1/6 from 1/3, 1/12 from 1/6, 1/14 from 1/7.</li>
-<li><b>Odd ones</b> via a near multiple: 13 × 77 = 1001 so 1/13 ≈ 0.077; 17 × 6 = 102 so
-1/17 ≈ 0.0588.</li>
-</ul>
+<p>Division is slow and multiplication is fast. Reciprocals turn one into the other: ÷ 8 is
+× 0.125, ÷ 7 is × 0.1429, ÷ 16 is × 0.0625.</p>
+<ex>350 ÷ 7 = 50 needs no trick<br>37 ÷ 7 ≈ 37 × 0.143 ≈ <b>5.29</b><br>91 ÷ 16 = 91 × 0.0625 ≈ <b>5.69</b></ex>
+<p>Fractions also convert percentages and ratios in your head.</p>
+<ex>5/8 = 0.625 = <b>62.5 %</b><br>3/7 ≈ <b>42.9 %</b></ex>
+<tip>Type answers to 3 decimal places, or exactly for the ones that terminate.</tip>
+<h3>Eighths and sixteenths</h3>
+<p>These are multiples of 0.125 and 0.0625.</p>
+<ex>3/8 = 3 × 0.125 = <b>0.375</b><br>5/16 = 5 × 0.0625 = <b>0.3125</b></ex>
+<h3>Ninths and elevenths</h3>
+<p>n/9 = 0.nnn…, and n/11 repeats 9n.</p>
+<ex>4/9 = 0.444…<br>3/11 = 0.2727… (9 × 3 = 27)</ex>
+<h3>Sevenths</h3>
+<p>All use the cyclic digits 142857. Start at the right place by estimating.</p>
+<ex>1/7 = 0.142857…<br>2/7 = 0.285714…<br>3/7 = 0.428571…</ex>
+<tip>3/7 is a bit under 0.43, so start at the 4.</tip>
+<h3>Halve to get the next</h3>
+<p>Get 1/6 from 1/3, 1/12 from 1/6, 1/14 from 1/7.</p>
+<ex>1/3 ≈ 0.333<br>1/6 ≈ 0.167<br>1/12 ≈ 0.083<br>1/7 ≈ 0.143<br>1/14 ≈ 0.071</ex>
+<h3>Odd ones</h3>
+<p>Go through a near multiple.</p>
+<ex>13 × 77 = 1001, so 1/13 ≈ <b>0.077</b><br>17 × 6 = 102, so 1/17 ≈ <b>0.0588</b></ex>
 """)
 
     private val LOG10_LESSON = Lesson("Common logarithms: the anchors", """
-<p>With a handful of logs you can take the log of <i>any</i> number by factoring, and the
-antilog of any exponent by reversing the table. That is the engine behind fast estimation of
-products, powers and roots: multiply by adding logs.</p>
-<p>The four to know cold: <b>log 2 = 0.301, log 3 = 0.477, log 7 = 0.845</b>, and
-<b>log e = 0.434</b>. Everything else follows:</p>
-<ul>
-<li>log 4 = 2 × 0.301 = 0.602, log 8 = 0.903, log 5 = 1 − 0.301 = 0.699.</li>
-<li>log 6 = 0.301 + 0.477 = 0.778, log 9 = 0.954, log 1.5 = 0.477 − 0.301 = 0.176.</li>
-</ul>
-<p>Example: log 4200 = 3 + log 4.2 = 3 + log 6 + log 7 − 1 = 3 + 0.778 + 0.845 − 1 = 3.623.</p>
-<p>The reverse cards are the same facts read backwards: 10<sup>0.3</sup> ≈ 2,
-10<sup>0.6</sup> ≈ 4, 10<sup>0.7</sup> ≈ 5, 10<sup>0.9</sup> ≈ 8, plus 10<sup>0.5</sup> =
-√10 = 3.162 and 10<sup>0.1</sup> ≈ 1.26. So 10<sup>4.7</sup> ≈ 5 × 10⁴ instantly.</p>
-<p>Answer logs to 3 decimal places and antilogs to about 3 significant figures.</p>
+<p>With a handful of logs you can take the log of <i>any</i> number by factoring, and the antilog
+of any exponent by reversing the table. That drives fast estimation of products, powers and roots:
+multiply by adding logs.</p>
+<h3>Four to know cold</h3>
+<p><b>log 2 = 0.301, log 3 = 0.477, log 7 = 0.845</b>, and <b>log e = 0.434</b>. Everything else follows.</p>
+<ex>log 4 = 2 × 0.301 = 0.602<br>log 8 = 3 × 0.301 = 0.903<br>log 5 = 1 − 0.301 = 0.699<br>log 6 = 0.301 + 0.477 = 0.778<br>log 9 = 2 × 0.477 = 0.954<br>log 1.5 = 0.477 − 0.301 = 0.176</ex>
+<h3>Any number: factor it</h3>
+<p>Pull out the power of ten, then factor what is left.</p>
+<ex>log 4200 = 3 + log 4.2<br>log 4.2 = log 6 + log 7 − 1<br>3 + 0.778 + 0.845 − 1 = <b>3.623</b></ex>
+<h3>Reverse cards</h3>
+<p>These are the same facts read backwards.</p>
+<ex>10<sup>0.3</sup> ≈ 2<br>10<sup>0.6</sup> ≈ 4<br>10<sup>0.7</sup> ≈ 5<br>10<sup>0.9</sup> ≈ 8<br>10<sup>0.5</sup> = √10 = 3.162<br>10<sup>0.1</sup> ≈ 1.26<br>So 10<sup>4.7</sup> ≈ <b>5 × 10⁴</b></ex>
+<tip>Answer logs to 3 decimal places and antilogs to about 3 significant figures.</tip>
 """)
 
     private val LN_LESSON = Lesson("Natural logarithms: the anchors", """
-<p>Natural logs are the language of growth and decay: continuous interest, half-lives,
-doubling times, entropy, anything with e<sup>x</sup>. Like common logs, a few anchors
-generate the rest by factoring.</p>
-<p>Know cold: <b>ln 2 = 0.693, ln 3 = 1.099, ln 10 = 2.303</b>. Then:</p>
-<ul>
-<li>ln 5 = ln 10 − ln 2 = 1.609; ln 4 = 1.386; ln 8 = 2.079; ln 6 = 1.792; ln 9 = 2.197.</li>
-<li>ln 7 ≈ 1.946 (half of ln 49, a bit under half of ln 50).</li>
-<li>Small x: <b>ln(1 + x) ≈ x − x²/2</b>, so ln 1.1 ≈ 0.095, ln 1.05 ≈ 0.049.</li>
-<li>Conversions: ln x = 2.303 × log x, and log x = 0.434 × ln x.</li>
-</ul>
-<p>Example: a quantity growing 7 % a year doubles in about ln 2 / 0.07 ≈ 0.693 / 0.07 ≈ 10
-years — the "rule of 70". And ln 30 = ln 3 + ln 10 = 1.099 + 2.303 = 3.401.</p>
-<p>Answer to 3 decimal places.</p>
+<p>Natural logs are the language of growth and decay: continuous interest, half-lives, doubling
+times, entropy, anything with e<sup>x</sup>. Like common logs, a few anchors generate the rest by
+factoring.</p>
+<h3>Anchors</h3>
+<p>Know cold: <b>ln 2 = 0.693, ln 3 = 1.099, ln 10 = 2.303</b>. Factor the rest.</p>
+<ex>ln 5 = ln 10 − ln 2 = 1.609<br>ln 4 = 1.386<br>ln 8 = 2.079<br>ln 6 = 1.792<br>ln 9 = 2.197</ex>
+<ex>ln 30 = ln 3 + ln 10<br>1.099 + 2.303 = 3.402<br>Rounded anchors land slightly high: ln 30 is <b>3.401</b></ex>
+<h3>ln 7</h3>
+<p>ln 7 ≈ 1.946. It is half of ln 49, a bit under half of ln 50.</p>
+<ex>ln 7 = ½ × ln 49 ≈ <b>1.946</b></ex>
+<h3>Small x</h3>
+<p>For small x, <b>ln(1 + x) ≈ x − x²/2</b>.</p>
+<ex>ln 1.1 ≈ 0.1 − 0.005 = <b>0.095</b><br>ln 1.05 ≈ 0.05 − 0.00125 ≈ <b>0.049</b></ex>
+<h3>Converting bases</h3>
+<p>One multiplier takes you each way.</p>
+<ex>ln x = 2.303 × log x<br>log x = 0.434 × ln x</ex>
+<h3>Doubling time</h3>
+<p>A quantity growing 7 % a year doubles in about ln 2 / 0.07 years. This is the "rule of 70".</p>
+<ex>0.693 ÷ 0.07 = 9.9<br>About <b>10</b> years</ex>
+<tip>Answer to 3 decimal places.</tip>
 """)
 
     private val EXP_LESSON = Lesson("Powers of e", """
-<p>Exponentials are logs read backwards, and they appear directly in compound growth,
-radioactive decay, probability (the Poisson e<sup>−λ</sup>), and physics. These anchors let
-you evaluate e<sup>x</sup> for any x: split x into a piece you know plus a small remainder.</p>
-<ul>
-<li><b>e = 2.718, e² = 7.389, e³ ≈ 20.09, e⁵ ≈ 148</b>.</li>
-<li><b>e<sup>0.693</sup> = 2, e<sup>2.303</sup> = 10</b> (the natural-log anchors reversed).</li>
-<li>Negatives are reciprocals: e<sup>−1</sup> = 0.368, e<sup>−2</sup> = 0.135,
-e<sup>−3</sup> ≈ 0.05.</li>
-<li>Small x: <b>e<sup>x</sup> ≈ 1 + x + x²/2</b>, so e<sup>0.1</sup> ≈ 1.105.</li>
-</ul>
-<p>Example: e<sup>3.7</sup> = e<sup>3</sup> × e<sup>0.7</sup> ≈ 20.09 × 2.01 ≈ 40.4
-(0.7 ≈ ln 2 + 0.007). Or think in decades: e<sup>x</sup> = 10<sup>0.434x</sup>, so
-e<sup>10</sup> = 10<sup>4.34</sup> ≈ 2.2 × 10⁴.</p>
-<p>Answer to about 3 significant figures (within 1 %).</p>
+<p>Exponentials are logs read backwards. They appear directly in compound growth, radioactive decay,
+probability (the Poisson e<sup>−λ</sup>) and physics.</p>
+<h3>Anchors</h3>
+<p>The last two are the natural-log anchors reversed.</p>
+<ex><b>e = 2.718</b><br>e² = 7.389<br>e³ ≈ 20.09<br>e⁵ ≈ 148<br>e<sup>0.693</sup> = 2<br>e<sup>2.303</sup> = 10</ex>
+<h3>Negatives</h3>
+<p>Negative powers are reciprocals.</p>
+<ex>e<sup>−1</sup> = 0.368<br>e<sup>−2</sup> = 0.135<br>e<sup>−3</sup> ≈ 0.05</ex>
+<h3>Any x: split it</h3>
+<p>Split x into a piece you know plus a small remainder.</p>
+<ex>e<sup>3.7</sup> = e<sup>3</sup> × e<sup>0.7</sup><br>0.7 ≈ ln 2 + 0.007, so e<sup>0.7</sup> ≈ 2.01<br>20.09 × 2.01 ≈ <b>40.4</b></ex>
+<h3>Small x</h3>
+<p>For small x, <b>e<sup>x</sup> ≈ 1 + x + x²/2</b>.</p>
+<ex>e<sup>0.1</sup><br>1 + 0.1 + 0.005 = <b>1.105</b></ex>
+<h3>Think in decades</h3>
+<p>Convert to base 10: e<sup>x</sup> = 10<sup>0.434x</sup>.</p>
+<ex>e<sup>10</sup> = 10<sup>4.34</sup> ≈ <b>2.2 × 10⁴</b></ex>
+<tip>Answer to about 3 significant figures (within 1 %).</tip>
 """)
 
     private val CONSTS_LESSON = Lesson("Constants and roots", """
-<p>These numbers recur in geometry, physics and statistics, and in every trig value: sin 60°
-is √3/2, a circle's area is πr², a normal curve's peak is 1/√(2π). Knowing them to four
-significant figures means your estimates are never limited by a fuzzy constant.</p>
-<ul>
-<li><b>√2 = 1.414, √3 = 1.732, √5 = 2.236</b>. Then √6 = √2√3 = 2.449, √8 = 2√2 = 2.828,
-√10 = 3.162.</li>
-<li><b>π = 3.1416</b>, so 2π = 6.283, π/2 = 1.571, π² = 9.870, 1/π = 0.318, √π = 1.772.</li>
-<li><b>e = 2.71828</b>, 1/e = 0.368. <b>φ = 1.618</b> = (1 + √5)/2, and 1/φ = φ − 1.</li>
-<li>Cube roots: ∛2 = 1.26, ∛10 = 2.154.</li>
-</ul>
-<p>Memorize by checking: square your answer (1.732² = 2.9998), or derive from a neighbour
-(1/√2 = √2/2). Use the mnemonics in the card notes for π and e.</p>
-<p>Answer to 4 significant figures.</p>
+<p>These numbers recur in geometry, physics, statistics and every trig value: sin 60° is √3/2, a
+circle's area is πr², a normal curve's peak is 1/√(2π). At four significant figures, your estimates
+are never limited by a fuzzy constant.</p>
+<h3>Square roots</h3>
+<p>Learn <b>√2 = 1.414, √3 = 1.732, √5 = 2.236</b>. Build others from them.</p>
+<ex>√6 = √2√3 = 2.449<br>√8 = 2√2 = 2.828<br>√10 = 3.162</ex>
+<h3>π</h3>
+<p>Learn <b>π = 3.1416</b>, then its relatives.</p>
+<ex>2π = 6.283<br>π/2 = 1.571<br>π² = 9.870<br>1/π = 0.318<br>√π = 1.772</ex>
+<h3>e and φ</h3>
+<p><b>e = 2.71828</b>, and 1/e = 0.368. <b>φ = 1.618</b> = (1 + √5)/2, and 1/φ = φ − 1.</p>
+<ex>φ = (1 + √5)/2<br>1 + 2.236 = 3.236<br>3.236 ÷ 2 = <b>1.618</b><br>1/φ = 1.618 − 1 = <b>0.618</b></ex>
+<h3>Cube roots</h3>
+<ex>∛2 = 1.26<br>∛10 = 2.154</ex>
+<h3>Memorize by checking</h3>
+<p>Square your answer, or derive from a neighbour.</p>
+<ex>1.732² ≈ 2.9998<br>1/√2 = √2/2<br>1.414 ÷ 2 = <b>0.707</b></ex>
+<tip>Use the mnemonics in the card notes for π and e. Answer to 4 significant figures.</tip>
 """)
 
     private val TRIG_LESSON = Lesson("Special angles and radians", """
-<p>Every trig estimate starts from a nearby known angle: sin 37° is "a bit more than
-sin 30° = 0.5", tan 70° is "a bit less than tan 75° = 3.73". These values are your grid.</p>
-<p>All of them come from two triangles. The <b>45-45-90</b> triangle (sides 1, 1, √2) gives
-sin 45° = cos 45° = √2/2 = 0.7071. The <b>30-60-90</b> triangle (half an equilateral, sides
-1, √3, 2) gives sin 30° = ½, sin 60° = √3/2 = 0.866, tan 30° = 1/√3 = 0.577, tan 60° = √3.
-Cosine is sine of the complement: cos θ = sin(90° − θ).</p>
-<ul>
-<li><b>15° and 75°</b>: sin 15° = (√6 − √2)/4 = 0.2588, cos 15° = 0.9659,
-tan 15° = 2 − √3 = 0.268, tan 75° = 2 + √3 = 3.732.</li>
-<li><b>18° and 36°</b> involve the golden ratio: sin 18° = 0.309, cos 36° = φ/2 = 0.809.</li>
-</ul>
-<p><b>Radians</b>: 1 rad = 57.30°, 1° = 0.01745 rad. Multiply degrees by π/180:
-30° = 0.524, 45° = 0.785, 60° = 1.047, 90° = 1.571. For small angles sin x ≈ tan x ≈ x
-(in radians): sin 3° ≈ 3 × 0.01745 = 0.052.</p>
+<p>Every trig estimate starts from a nearby known angle. These values are your grid.</p>
+<ex>sin 37° is a bit more than sin 30° = 0.5<br>tan 70° is less than tan 75° = 3.73</ex>
+<p>All of them come from two triangles.</p>
+<h3>45-45-90 triangle</h3>
+<p>Sides 1, 1, √2.</p>
+<ex>sin 45° = cos 45° = √2/2 = <b>0.7071</b></ex>
+<h3>30-60-90 triangle</h3>
+<p>Half an equilateral, with sides 1, √3, 2.</p>
+<ex>sin 30° = ½<br>sin 60° = √3/2 = 0.866<br>tan 30° = 1/√3 = 0.577<br>tan 60° = √3</ex>
+<h3>Complements</h3>
+<p>Cosine is sine of the complement: cos θ = sin(90° − θ).</p>
+<ex>cos 60° = sin 30° = <b>½</b></ex>
+<h3>15° and 75°</h3>
+<ex>sin 15° = (√6 − √2)/4 = 0.2588<br>cos 15° = 0.9659<br>tan 15° = 2 − √3 = 0.268<br>tan 75° = 2 + √3 = 3.732</ex>
+<h3>18° and 36°</h3>
+<p>These involve the golden ratio.</p>
+<ex>sin 18° = 0.309<br>cos 36° = φ/2 = 0.809</ex>
+<h3>Radians</h3>
+<p>1 rad = 57.30° and 1° = 0.01745 rad. Multiply degrees by π/180.</p>
+<ex>30° = 0.524<br>45° = 0.785<br>60° = 1.047<br>90° = 1.571</ex>
+<h3>Small angles</h3>
+<p>sin x ≈ tan x ≈ x, in radians.</p>
+<ex>sin 3°<br>3 × 0.01745 ≈ <b>0.052</b></ex>
 """)
 
 

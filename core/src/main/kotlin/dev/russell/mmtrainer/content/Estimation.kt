@@ -523,62 +523,79 @@ object Estimation : ContentModule {
 
     private val SCI_LESSON = Lesson(
         "Scientific notation",
-        "\n" +
-            "<p>Split every number into <b>mantissa × power of ten</b> and handle the two parts separately:</p>\n" +
+            "\n" +
+            "<p>Split every number into <b>mantissa × power of ten</b> and handle the two parts separately.</p>\n" +
+            "<h3>Multiply</h3>\n" +
+            "<p>Multiply the mantissas and <b>add</b> the exponents.</p>\n" +
+            "<ex>(6 × 10<sup>5</sup>) × (7 × 10<sup>−3</sup>)<br>6 × 7 = 42<br>5 + (−3) = 2<br>" +
+            "42 × 10<sup>2</sup> = <b>4.2 × 10<sup>3</sup></b></ex>\n" +
+            "<h3>Divide</h3>\n" +
+            "<p>Divide the mantissas and <b>subtract</b> the exponents.</p>\n" +
+            "<ex>(3.7 × 10<sup>8</sup>) ÷ (6.2 × 10<sup>−4</sup>)<br>3.7 ÷ 6.2 ≈ 0.6<br>" +
+            "Check: 6.2 × 0.6 = 3.72, so ≈ 0.597<br>8 − (−4) = 12<br>" +
+            "0.597 × 10<sup>12</sup> = <b>5.97 × 10<sup>11</sup></b></ex>\n" +
+            "<h3>Renormalize</h3>\n" +
+            "<p>If the mantissa lands outside 1–10, shift one place and fix the exponent.</p>\n" +
+            "<ex>42 × 10<sup>2</sup> = 4.2 × 10<sup>3</sup><br>" +
+            "0.286 × 10<sup>11</sup> = 2.86 × 10<sup>10</sup></ex>\n" +
+            "<h3>Tips</h3>\n" +
             "<ul>\n" +
-            "<li><b>Multiply:</b> multiply the mantissas, <b>add</b> the exponents.</li>\n" +
-            "<li><b>Divide:</b> divide the mantissas, <b>subtract</b> the exponents.</li>\n" +
-            "<li><b>Renormalize:</b> if the mantissa lands outside 1–10, shift one place and fix the exponent\n" +
-            "(42 × 10<sup>2</sup> = 4.2 × 10<sup>3</sup>; 0.286 × 10<sup>11</sup> = 2.86 × 10<sup>10</sup>).</li>\n" +
-            "</ul>\n" +
-            "<p><b>Example:</b> (6 × 10<sup>5</sup>) × (7 × 10<sup>−3</sup>): 6 × 7 = 42, 5 + (−3) = 2 →\n" +
-            "42 × 10<sup>2</sup> = <b>4.2 × 10<sup>3</sup></b>.</p>\n" +
-            "<p><b>Example:</b> (3.7 × 10<sup>8</sup>) ÷ (6.2 × 10<sup>−4</sup>): 3.7 ÷ 6.2 ≈ 0.6\n" +
-            "(check 6.2 × 0.6 = 3.72), so ≈ 0.597; 8 − (−4) = 12 → <b>5.97 × 10<sup>11</sup></b>.</p>\n" +
-            "<p>Tips: say the exponent bookkeeping out loud — sign errors with negative exponents are the\n" +
-            "#1 mistake. Use your reciprocal anchors for division (÷ 8 = × 0.125, ÷ 7 ≈ × 0.143). For\n" +
-            "chains, do all the exponents in one pass at the end. Type answers as e.g. <i>5.97e11</i>.</p>\n",
+            "<li>Say the exponent bookkeeping out loud. Sign errors with negative exponents are the #1 mistake.</li>\n" +
+            "<li>Use your reciprocal anchors for division: ÷ 8 = × 0.125, ÷ 7 ≈ × 0.143.</li>\n" +
+            "<li>For chains, do all the exponents in one pass at the end.</li>\n" +
+            "<li>Type answers as e.g. <i>5.97e11</i>.</li>\n" +
+            "</ul>\n",
     )
 
     private val FERMI_LESSON = Lesson(
         "Fast estimation",
-        "\n" +
-            "<p>Goal: a few-percent answer in seconds. Three habits:</p>\n" +
-            "<ul>\n" +
-            "<li><b>Round to friendly numbers — balanced.</b> Friendly mantissas: 1, 1.2, 1.25, 1.5, 2, 2.5,\n" +
-            "3, 3.5, 4, 5, 6, 7, 7.5, 8, 9. In a product, round one factor <i>up</i> and another <i>down</i>; in a\n" +
-            "quotient, round top and bottom the <i>same</i> way.</li>\n" +
-            "<li><b>Track the exponent separately.</b> Write each number as mantissa × 10<sup>n</sup>, multiply the\n" +
-            "small mantissas, add up the exponents at the end.</li>\n" +
-            "<li><b>Quantify the rounding.</b> Each rounding changes the result by about its own percentage\n" +
-            "(÷ flips the sign). Add them up and correct: small errors add, to first order.</li>\n" +
-            "</ul>\n" +
-            "<p><b>Example:</b> 347 × 58 ≈ 350 × 60 = 21 000. Errors: +0.9% and +3.4% → ≈ 4.3% high →\n" +
-            "21 000 − 4.3% ≈ <b>20 100</b> (true 20 126).</p>\n" +
-            "<p><b>Example:</b> 347 × 0.0219 × 58 ÷ 7.3: 3.5 × 2 × 6 ÷ 7 = 6, exponents 2 − 2 + 1 − 0 = 1\n" +
-            "→ 60. Errors +0.9%, −8.7%, +3.4%, ÷ 7.3→7 +4.3% → net ≈ 0 → <b>≈ 60</b> (true 60.4).</p>\n" +
-            "<p><b>Roots and powers:</b> make the exponent even, then √M ≈ a + (M − a²)/(2a) using the\n" +
-            "nearest whole or half square ((n + ½)² = n(n+1) + ¼, e.g. 6.5² = 42.25):\n" +
-            "√(4.2 × 10<sup>7</sup>) = √42 × 10<sup>3</sup> ≈ 6.48 × 10<sup>3</sup>. Squares: 3 600² = 3.6² × 10<sup>6</sup> = 12.96 × 10<sup>6</sup>.</p>\n",
+            "\n" +
+            "<p>Goal: a few-percent answer in seconds. Three habits, then roots and powers.</p>\n" +
+            "<h3>Round to friendly numbers</h3>\n" +
+            "<p>Friendly mantissas: 1, 1.2, 1.25, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 7.5, 8, 9.</p>\n" +
+            "<p>Keep it balanced. In a product, round one factor <i>up</i> and another <i>down</i>. In a quotient, round top and bottom the <i>same</i> way.</p>\n" +
+            "<ex>347 × 0.0219 × 58 ÷ 7.3<br>≈ 350 × 0.02 × 60 ÷ 7</ex>\n" +
+            "<h3>Track the exponent separately</h3>\n" +
+            "<p>Write each number as mantissa × 10<sup>n</sup>. Multiply the small mantissas and add up the exponents at the end.</p>\n" +
+            "<ex>3.5 × 2 × 6 ÷ 7 = 6<br>Exponents: 2 − 2 + 1 − 0 = 1<br>→ 60</ex>\n" +
+            "<h3>Quantify the rounding</h3>\n" +
+            "<p>Each rounding changes the result by about its own percentage, and ÷ flips the sign. Small errors add, to first order, so add them up and correct.</p>\n" +
+            "<ex>347 × 58 ≈ 350 × 60 = 21 000<br>Errors: +0.9% and +3.4%, so ≈ 4.3% high<br>" +
+            "21 000 − 4.3% ≈ <b>20 100</b> (true 20 126)</ex>\n" +
+            "<p>The chain above has errors that cancel:</p>\n" +
+            "<ex>347→350 +0.9%<br>0.0219→0.02 −8.7%<br>58→60 +3.4%<br>÷ 7.3→7 +4.3%<br>" +
+            "Net ≈ 0 → <b>≈ 60</b> (true 60.4)</ex>\n" +
+            "<h3>Square roots</h3>\n" +
+            "<p>Make the exponent even, then use √M ≈ a + (M − a²)/(2a), where a² is the nearest whole or half square.</p>\n" +
+            "<p>Half squares: (n + ½)² = n(n+1) + ¼.</p>\n" +
+            "<ex>√(4.2 × 10<sup>7</sup>) = √42 × 10<sup>3</sup><br>6.5² = 42.25<br>√42 ≈ 6.5 − 0.25/13 ≈ 6.48<br>" +
+            "→ <b>≈ 6.48 × 10<sup>3</sup></b></ex>\n" +
+            "<h3>Squares</h3>\n" +
+            "<p>Square the mantissa and double the exponent.</p>\n" +
+            "<ex>3 600²<br>= 3.6² × 10<sup>6</sup><br>= <b>12.96 × 10<sup>6</sup></b></ex>\n",
     )
 
     private val RECIP_LESSON = Lesson(
         "Reciprocals",
-        "\n" +
+            "\n" +
             "<p>Every reciprocal comes from your memorized 1/2 … 1/16 by one of two moves.</p>\n" +
-            "<p><b>1. Factor.</b> If x splits into two anchors, divide one reciprocal by the other factor:\n" +
-            "1/24 = 1/12 ÷ 2 = 0.0833 ÷ 2 = <b>0.0417</b>; 1/42 = 1/7 ÷ 6 = 0.143 ÷ 6 = 0.0238;\n" +
-            "1/70 = 1/7 ÷ 10 = 0.0143.</p>\n" +
-            "<p><b>2. Anchor + correction.</b> Otherwise pick the nearest \"nice\" number a and use</p>\n" +
-            "<p>&nbsp;&nbsp;1/(a + d) ≈ (1/a)·(1 − d/a)</p>\n" +
-            "<p>— a number <i>bigger</i> than the anchor has a slightly <i>smaller</i> reciprocal, by the same\n" +
-            "percentage. The error is only (d/a)², so with d/a ≈ 3% you're good to 0.1%.<br>\n" +
-            "1/37: anchor 36 = 4 × 9, 1/36 = 0.111 ÷ 4 = 0.0278; 37 is 1/36 ≈ 2.8% bigger →\n" +
-            "0.0278 − 0.0008 = <b>0.0270</b> (true 0.02703).<br>\n" +
-            "1/59: 1/60 = 0.01667, 59 is 1/60 smaller → 0.01667 + 0.00028 = 0.01695.</p>\n" +
-            "<p><b>Decimals and exponents:</b> slide the decimal point first, then do a 2-digit reciprocal:\n" +
-            "1/0.0042 = 10<sup>4</sup>/42 ≈ 0.0238 × 10<sup>4</sup> = <b>238</b>;\n" +
-            "1/(3.7 × 10<sup>5</sup>) = (1/37) × 10<sup>−4</sup> ≈ 2.70 × 10<sup>−6</sup>.</p>\n",
+            "<h3>1. Factor</h3>\n" +
+            "<p>If x splits into two anchors, divide one reciprocal by the other factor.</p>\n" +
+            "<ex>1/24 = 1/12 ÷ 2<br>≈ 0.0833 ÷ 2 ≈ <b>0.0417</b></ex>\n" +
+            "<ex>1/42 = 1/7 ÷ 6<br>≈ 0.143 ÷ 6 ≈ 0.0238</ex>\n" +
+            "<ex>1/70 = 1/7 ÷ 10 ≈ 0.0143</ex>\n" +
+            "<h3>2. Anchor + correction</h3>\n" +
+            "<p>Otherwise pick the nearest \"nice\" number a and use:</p>\n" +
+            "<ex>1/(a + d) ≈ (1/a)·(1 − d/a)</ex>\n" +
+            "<p>A number <i>bigger</i> than the anchor has a slightly <i>smaller</i> reciprocal, by the same percentage.</p>\n" +
+            "<ex>1/37: anchor 36 = 4 × 9<br>1/36 ≈ 0.111 ÷ 4 ≈ 0.0278<br>37 is 1/36 ≈ 2.8% bigger<br>" +
+            "0.0278 − 0.0008 = <b>0.0270</b> (true 0.02703)</ex>\n" +
+            "<ex>1/59: anchor 60<br>1/60 ≈ 0.01667<br>59 is 1/60 smaller<br>0.01667 + 0.00028 = 0.01695</ex>\n" +
+            "<tip>The error is only (d/a)², so with d/a ≈ 3% you're good to 0.1%.</tip>\n" +
+            "<h3>Decimals and exponents</h3>\n" +
+            "<p>Slide the decimal point first, then do a 2-digit reciprocal.</p>\n" +
+            "<ex>1/0.0042 = 10<sup>4</sup>/42<br>≈ 0.0238 × 10<sup>4</sup> = <b>238</b></ex>\n" +
+            "<ex>1/(3.7 × 10<sup>5</sup>) = (1/37) × 10<sup>−4</sup><br>≈ 2.70 × 10<sup>−6</sup></ex>\n",
     )
 
     // ---------------------------------------------------------------- skills

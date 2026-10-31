@@ -644,71 +644,142 @@ object Trig : ContentModule {
         "Degrees ↔ radians",
         "\n" +
         "<p><b>π rad = 180°</b>, so 1 rad ≈ <b>57.3°</b> and 1° ≈ <b>0.01745 rad</b>.</p>\n" +
+        "<h3>Nice angles → radians</h3>\n" +
+        "<p>Reduce the fraction of 180°, then use the decimal for π.</p>\n" +
+        "<ex>135°<br>135/180 · π = 3π/4<br>π/4 ≈ 0.7854<br>3 × 0.7854 ≈ <b>2.356</b></ex>\n" +
+        "<p>Know these by heart:</p>\n" +
         "<ul>\n" +
-        "<li><b>Nice angles:</b> reduce the fraction of 180°. 135° = 135/180 · π = 3π/4 ≈ 3 × 0.785 =\n" +
-        "2.356. Know π/12 ≈ 0.262, π/6 ≈ 0.524, π/4 ≈ 0.785, π/3 ≈ 1.047, π/2 ≈ 1.571.<br>\n" +
-        "Back the other way, π/n = 180°/n: 5π/6 = 5 × 30° = 150°.</li>\n" +
-        "<li><b>Any angle → rad:</b> start from the nearest nice angle and add 0.01745 per extra degree.\n" +
-        "37° = 30° + 7° ≈ 0.524 + 0.122 = <b>0.646</b>. Or ÷ 57.3, or × 0.0175 (= 7/400) and shave 0.3%.</li>\n" +
-        "<li><b>rad → °:</b> × 57.3, split into whole and fractional parts:\n" +
-        "2.3 rad = 2 × 57.3 + 0.3 × 57.3 = 114.6 + 17.2 ≈ <b>131.8°</b>.</li>\n" +
+        "<li>π/12 ≈ 0.262</li>\n" +
+        "<li>π/6 ≈ 0.524</li>\n" +
+        "<li>π/4 ≈ 0.785</li>\n" +
+        "<li>π/3 ≈ 1.047</li>\n" +
+        "<li>π/2 ≈ 1.571</li>\n" +
         "</ul>\n" +
-        "<p>Sanity anchors: 1 rad is a bit under 60°; 3 rad is just under 180°; 6.28 rad is a full turn.</p>\n",
+        "<h3>Fractions of π → degrees</h3>\n" +
+        "<p>π/n = 180°/n, then multiply up.</p>\n" +
+        "<ex>5π/6<br>π/6 = 180°/6 = 30°<br>5 × 30° = <b>150°</b></ex>\n" +
+        "<h3>Any angle → radians</h3>\n" +
+        "<p>Start from the nearest nice angle and add 0.01745 per extra degree.</p>\n" +
+        "<ex>37° = 30° + 7°<br>30° ≈ 0.524<br>7 × 0.01745 ≈ 0.122<br>0.524 + 0.122 = <b>0.646</b></ex>\n" +
+        "<p>Or divide by 57.3. Or multiply by 0.0175 (which is 7/400) and shave 0.3%.</p>\n" +
+        "<ex>37 ÷ 57.3 ≈ <b>0.646</b></ex>\n" +
+        "<ex>37 × 0.0175 = 0.6475<br>0.3% of 0.6475 ≈ 0.0019<br>0.6475 − 0.0019 = <b>0.6456</b></ex>\n" +
+        "<tip>Use it for angles that are not multiples of 15°.</tip>\n" +
+        "<h3>Radians → degrees</h3>\n" +
+        "<p>Multiply by 57.3, splitting the number into whole and fractional parts.</p>\n" +
+        "<ex>2.3 rad<br>2 × 57.3 = 114.6<br>0.3 × 57.3 ≈ 17.2<br>114.6 + 17.2 ≈ <b>131.8°</b></ex>\n" +
+        "<h3>Sanity anchors</h3>\n" +
+        "<ul>\n" +
+        "<li>1 rad is a bit under 60°.</li>\n" +
+        "<li>3 rad is just under 180°.</li>\n" +
+        "<li>6.28 rad is a full turn.</li>\n" +
+        "</ul>\n",
     )
 
     private val TRIG_LESSON = Lesson(
         "Trig values",
         "\n" +
-        "<p><b>1. Unit circle symmetry.</b> Any angle reduces to a <i>reference angle</i> in 0–90°; only the\n" +
-        "sign changes. Signs by quadrant: <b>ASTC</b> — <i>All</i> positive in I, <i>Sin</i> in II,\n" +
-        "<i>Tan</i> in III, <i>Cos</i> in IV. Negative angles: add 360° (cos is even, sin and tan are odd).<br>\n" +
-        "225° = 180° + 45° (III) → sin 225° = −√2/2 ≈ −0.707; cos(−30°) = cos 30° ≈ 0.866.</p>\n" +
-        "<p><b>2. In-between angles: anchor + slope.</b> Go from the nearest memorized angle (0, 15, 30, 45,\n" +
-        "60, 75, 90°) using the derivative, with the step in radians (1° = 0.01745):</p>\n" +
-        "<ul><li>sin(a + d) ≈ sin a + cos a · d</li><li>cos(a + d) ≈ cos a − sin a · d</li>\n" +
-        "<li>tan(a + d) ≈ tan a + (1 + tan² a) · d</li></ul>\n" +
-        "<p>sin 37°: 7° ≈ 0.122 rad → 0.5 + 0.866 × 0.122 ≈ <b>0.606</b> (true 0.602; the curve bends\n" +
-        "down, so a linear step slightly overshoots).</p>\n" +
-        "<p><b>3. Radian arguments.</b> Small x: Taylor — sin x ≈ x − x³/6, cos x ≈ 1 − x²/2,\n" +
-        "tan x ≈ x + x³/3 (sin 0.4 ≈ 0.4 − 0.011 = 0.389). Larger x: use radian anchors π/6 ≈ 0.524,\n" +
-        "π/4 ≈ 0.785, π/3 ≈ 1.047, 5π/12 ≈ 1.309 with the same slope rule — no degree conversion needed:\n" +
-        "cos 1.2 ≈ 0.5 − 0.866 × 0.153 ≈ 0.368. Past π/2, fold: sin x = sin(π − x), cos x = −cos(π − x).</p>\n",
+        "<h3>Unit circle symmetry</h3>\n" +
+        "<p>Any angle reduces to a <i>reference angle</i> in 0–90°. Only the sign changes.</p>\n" +
+        "<p><b>ASTC</b> gives the signs by quadrant: <i>All</i> positive in I, <i>Sin</i> in II,\n" +
+        "<i>Tan</i> in III, <i>Cos</i> in IV.</p>\n" +
+        "<ex>sin 225°<br>225° = 180° + 45°, quadrant III<br>Reference 45°, and sin is negative<br>sin 225° = −√2/2 ≈ <b>−0.707</b></ex>\n" +
+        "<p>Negative angles: add 360°. Cos is even; sin and tan are odd.</p>\n" +
+        "<ex>cos(−30°) = cos 30° ≈ <b>0.866</b></ex>\n" +
+        "<h3>In-between angles: anchor + slope</h3>\n" +
+        "<p>Go from the nearest memorized angle (0, 15, 30, 45, 60, 75, 90°) using the derivative.\n" +
+        "The step is in radians: 1° ≈ 0.01745.</p>\n" +
+        "<ul>\n" +
+        "<li>sin(a + d) ≈ sin a + cos a · d</li>\n" +
+        "<li>cos(a + d) ≈ cos a − sin a · d</li>\n" +
+        "<li>tan(a + d) ≈ tan a + (1 + tan² a) · d</li>\n" +
+        "</ul>\n" +
+        "<ex>sin 37°, from sin 30° = 0.5<br>Step: 7 × 0.01745 ≈ 0.122 rad<br>Slope: cos 30° ≈ 0.866<br>0.866 × 0.122 ≈ 0.106<br>0.5 + 0.106 = <b>0.606</b></ex>\n" +
+        "<p>The true value is 0.602. The curve bends down, so a linear step slightly overshoots.</p>\n" +
+        "<tip>Use it for angles that are not multiples of 15°.</tip>\n" +
+        "<h3>Radian arguments: small x</h3>\n" +
+        "<p>Use the Taylor series:</p>\n" +
+        "<ul>\n" +
+        "<li>sin x ≈ x − x³/6</li>\n" +
+        "<li>cos x ≈ 1 − x²/2</li>\n" +
+        "<li>tan x ≈ x + x³/3</li>\n" +
+        "</ul>\n" +
+        "<ex>sin 0.4<br>0.4³/6 ≈ 0.011<br>0.4 − 0.011 = <b>0.389</b></ex>\n" +
+        "<h3>Radian arguments: larger x</h3>\n" +
+        "<p>Use radian anchors with the same slope rule. No degree conversion needed.</p>\n" +
+        "<ul>\n" +
+        "<li>π/6 ≈ 0.524</li>\n" +
+        "<li>π/4 ≈ 0.785</li>\n" +
+        "<li>π/3 ≈ 1.047</li>\n" +
+        "<li>5π/12 ≈ 1.309</li>\n" +
+        "</ul>\n" +
+        "<ex>cos 1.2, from cos π/3 = 0.5<br>Step: 1.2 − 1.047 = 0.153<br>Slope: −sin π/3 ≈ −0.866<br>0.866 × 0.153 ≈ 0.132<br>0.5 − 0.132 = <b>0.368</b></ex>\n" +
+        "<h3>Radian arguments: past π/2</h3>\n" +
+        "<p>Fold back first: sin x = sin(π − x) and cos x = −cos(π − x).</p>\n" +
+        "<ex>cos 2.8 = −cos(π − 2.8)<br>π − 2.8 ≈ 0.342<br>0.342²/2 ≈ 0.058<br>1 − 0.058 = 0.942<br>cos 2.8 ≈ <b>−0.942</b></ex>\n",
     )
 
     private val SMALL_LESSON = Lesson(
         "Small-angle approximations",
         "\n" +
+        "<h3>The rules</h3>\n" +
         "<p>For a small angle θ <b>in radians</b>:</p>\n" +
-        "<ul><li><b>sin θ ≈ tan θ ≈ θ</b> (relative errors θ²/6 and θ²/3)</li>\n" +
-        "<li><b>cos θ ≈ 1 − θ²/2</b>, i.e. 1 − cos θ ≈ θ²/2</li></ul>\n" +
-        "<p>Even at 10° (θ ≈ 0.175) sin θ ≈ θ is off by only 0.5% and tan θ ≈ θ by 1%; refine with\n" +
-        "θ(1 − θ²/6) or θ(1 + θ²/3). Degrees first: θ = x° × 0.01745 (or x ÷ 57.3).</p>\n" +
-        "<p><b>Example:</b> sin 2.5° ≈ 2.5 × 0.01745 ≈ <b>0.0436</b>.\n" +
-        "1 − cos 4°: θ ≈ 0.0698, θ² ≈ 0.00487 → <b>0.00244</b>.</p>\n" +
-        "<p><b>Arc length:</b> an object of size s at distance d (s ≪ d) subtends θ ≈ s/d radians\n" +
-        "= 57.3 · s/d degrees. Equivalently, something 1 unit wide at 57.3 units away spans 1°.</p>\n" +
-        "<ul><li>1.8 m person at 2.5 km: 1.8/2 500 = 0.00072 rad × 57.3 ≈ 0.041°</li>\n" +
-        "<li>The Moon: 3 474 km / 384 400 km ≈ 0.0090 rad ≈ 0.52°; a thumb at arm's length ≈ 2°.</li>\n" +
-        "<li>Reverse: size ≈ θ<sub>rad</sub> · d; distance ≈ 57.3 · s / θ°. Watch the units (m vs km)!</li></ul>\n",
+        "<ul>\n" +
+        "<li><b>sin θ ≈ tan θ ≈ θ</b>, with relative errors θ²/6 and θ²/3</li>\n" +
+        "<li><b>cos θ ≈ 1 − θ²/2</b>, i.e. 1 − cos θ ≈ θ²/2</li>\n" +
+        "</ul>\n" +
+        "<p>Given degrees, convert first: θ = x° × 0.01745, or x ÷ 57.3.</p>\n" +
+        "<ex>sin 2.5°<br>2.5 × 0.01745 ≈ <b>0.0436</b></ex>\n" +
+        "<ex>1 − cos 4°<br>θ = 4 × 0.01745 = 0.0698<br>θ² ≈ 0.00487<br>θ²/2 ≈ <b>0.00244</b></ex>\n" +
+        "<h3>Refining</h3>\n" +
+        "<p>Even at 10° (θ ≈ 0.175), sin θ ≈ θ is off by only 0.5% and tan θ ≈ θ by 1%.\n" +
+        "To refine, use θ(1 − θ²/6) or θ(1 + θ²/3).</p>\n" +
+        "<ex>tan 10°<br>θ = 10 × 0.01745 = 0.1745<br>θ²/3 ≈ 0.01<br>0.1745 × 1.01 ≈ <b>0.176</b></ex>\n" +
+        "<h3>Arc length</h3>\n" +
+        "<p>An object of size s at distance d (s ≪ d) subtends θ ≈ s/d radians, or 57.3 · s/d degrees.</p>\n" +
+        "<p>Equivalently, something 1 unit wide at 57.3 units away spans 1°.</p>\n" +
+        "<ex>1.8 m person at 2.5 km<br>1.8/2 500 = 0.00072 rad<br>0.00072 × 57.3 ≈ <b>0.041°</b></ex>\n" +
+        "<ex>The Moon: 3 474 km wide, 384 400 km away<br>3 474/384 400 ≈ 0.0090 rad<br>0.0090 × 57.3 ≈ <b>0.52°</b></ex>\n" +
+        "<p>A thumb at arm's length spans about 2°.</p>\n" +
+        "<h3>Reverse: size and distance</h3>\n" +
+        "<ul>\n" +
+        "<li>Size ≈ θ<sub>rad</sub> · d</li>\n" +
+        "<li>Distance ≈ 57.3 · s / θ°</li>\n" +
+        "</ul>\n" +
+        "<ex>0.5° at 200 m: size?<br>θ = 0.5 × 0.01745 = 0.008725<br>0.008725 × 200 ≈ <b>1.75 m</b></ex>\n" +
+        "<ex>1.8 m spans 0.5°: distance?<br>57.3 × 1.8 ≈ 103<br>103 ÷ 0.5 = <b>206 m</b></ex>\n" +
+        "<tip>Watch the units: m vs km.</tip>\n",
     )
 
     private val INV_LESSON = Lesson(
         "Inverse trig",
         "\n" +
-        "<p><b>Exact values</b> are your special-angle table read backwards; give the answer in the\n" +
-        "principal range: arcsin and arctan in −90°…90° (both <i>odd</i>: arcsin(−x) = −arcsin x),\n" +
-        "arccos in 0°…180° with <b>arccos(−x) = 180° − arccos x</b>.<br>\n" +
-        "arccos(−0.866) = 180° − 30° = 150°; arctan √3 = 60°; arcsin(−1/2) = −30°.</p>\n" +
-        "<p><b>Extra anchors worth memorizing</b> (3-4-5 triangle and friends):</p>\n" +
-        "<ul><li>arcsin 0.6 = arctan 0.75 = <b>36.87°</b>; arcsin 0.8 = arctan 4/3 = <b>53.13°</b></li>\n" +
-        "<li>arctan 0.5 = <b>26.57°</b>; arctan 2 = <b>63.43°</b></li></ul>\n" +
-        "<p><b>In between: anchor + inverse slope.</b> d(arcsin x)/dx = 1/cos θ and\n" +
-        "d(arctan x)/dx = 1/(1 + x²), in radians — multiply by 57.3 for degrees.<br>\n" +
-        "arctan 0.3: anchor tan 15° = 0.268, slope 1/(1 + 0.268²) ≈ 0.933 rad ≈ 53.5°/unit →\n" +
-        "15° + 0.032 × 53.5° ≈ <b>16.7°</b>.<br>\n" +
-        "arcsin 0.55: 30° + 0.05 × (57.3/0.866) ≈ 30° + 3.3° = <b>33.3°</b>.</p>\n" +
-        "<p><b>Small x:</b> arcsin x ≈ arctan x ≈ x rad = 57.3·x degrees (arctan 0.15 ≈ 8.6°).\n" +
-        "<b>arccos x = 90° − arcsin x</b>: arccos 0.2 ≈ 90° − 11.5° = 78.5°.</p>\n",
+        "<h3>Exact values</h3>\n" +
+        "<p>Read your special-angle table backwards. Answer in the principal range:</p>\n" +
+        "<ul>\n" +
+        "<li><b>arcsin, arctan:</b> −90°…90°. Both are <i>odd</i>: arcsin(−x) = −arcsin x.</li>\n" +
+        "<li><b>arccos:</b> 0°…180°, with <b>arccos(−x) = 180° − arccos x</b>.</li>\n" +
+        "</ul>\n" +
+        "<ex>arccos(−0.866) ≈ 180° − 30° = <b>150°</b><br>arctan √3 = <b>60°</b><br>arcsin(−1/2) = <b>−30°</b></ex>\n" +
+        "<h3>Extra anchors</h3>\n" +
+        "<p>Worth memorizing, from the 3-4-5 triangle and friends:</p>\n" +
+        "<ul>\n" +
+        "<li>arcsin 0.6 = arctan 0.75 ≈ <b>36.87°</b></li>\n" +
+        "<li>arcsin 0.8 = arctan(4/3) ≈ <b>53.13°</b></li>\n" +
+        "<li>arctan 0.5 ≈ <b>26.57°</b></li>\n" +
+        "<li>arctan 2 ≈ <b>63.43°</b></li>\n" +
+        "</ul>\n" +
+        "<h3>In between: anchor + inverse slope</h3>\n" +
+        "<p>d(arcsin x)/dx = 1/cos θ and d(arctan x)/dx = 1/(1 + x²), in radians. Multiply by 57.3 for degrees.</p>\n" +
+        "<ex>arctan 0.3, from tan 15° ≈ 0.268<br>Step: 0.3 − 0.268 = 0.032<br>Slope: 1/(1 + 0.268²) ≈ 0.933 rad<br>0.933 × 57.3 ≈ 53.5° per unit<br>0.032 × 53.5° ≈ 1.7°<br>15° + 1.7° ≈ <b>16.7°</b></ex>\n" +
+        "<ex>arcsin 0.55, from sin 30° = 0.5<br>Step: 0.55 − 0.5 = 0.05<br>Slope: 57.3/0.866 ≈ 66.2° per unit<br>0.05 × 66.2° ≈ 3.3°<br>30° + 3.3° = <b>33.3°</b></ex>\n" +
+        "<tip>Use it when x is not in your table of anchors.</tip>\n" +
+        "<h3>Small x</h3>\n" +
+        "<p>arcsin x ≈ arctan x ≈ x rad, which is 57.3·x degrees.</p>\n" +
+        "<ex>arctan 0.15<br>0.15 × 57.3 ≈ <b>8.6°</b></ex>\n" +
+        "<h3>arccos from arcsin</h3>\n" +
+        "<p><b>arccos x = 90° − arcsin x</b></p>\n" +
+        "<ex>arccos 0.2<br>arcsin 0.2 ≈ 0.2 × 57.3 ≈ 11.5°<br>90° − 11.5° = <b>78.5°</b></ex>\n",
     )
 
     // ------------------------------------------------------------ skills

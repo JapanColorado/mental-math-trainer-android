@@ -644,76 +644,163 @@ object Powers : ContentModule {
     private val L_EXP = Lesson(
         "Exponentials",
         "\n" +
-        "<p><b>Anchors:</b> e = 2.718, e<sup>2</sup> = 7.389, e<sup>3</sup> = 20.09, e<sup>4</sup> = 54.6,\n" +
-        "e<sup>5</sup> = 148.4, and <b>√e = e<sup>0.5</sup> ≈ 1.649</b>. Exponents add, so\n" +
-        "e<sup>3.5</sup> = e<sup>3</sup> × √e ≈ 20.09 × 1.65 ≈ 33.1, and negatives are reciprocals:\n" +
-        "e<sup>−2</sup> = 1/7.389 ≈ 0.135.</p>\n" +
-        "<p><b>Small x: e<sup>x</sup> ≈ 1 + x + x²/2</b> (add x³/6 once |x| passes ~0.15).\n" +
-        "e<sup>0.12</sup> ≈ 1 + 0.12 + 0.0072 = 1.127. e<sup>−0.25</sup> ≈ 1 − 0.25 + 0.03125 − 0.0026 = 0.779.</p>\n" +
-        "<p><b>Anything else: e<sup>n</sup> × e<sup>f</sup>.</b> Split x into the nearest half-integer\n" +
-        "plus a small remainder f (|f| ≤ 0.25), then multiply.</p>\n" +
-        "<p>Example: e<sup>2.3</sup> = e<sup>2.5</sup> × e<sup>−0.2</sup>. e<sup>2.5</sup> = 7.389 × 1.649 ≈ 12.18;\n" +
-        "e<sup>−0.2</sup> ≈ 1 − 0.2 + 0.02 = 0.82 → 12.18 × 0.82 ≈ <b>9.99</b> (true 9.97).</p>\n" +
-        "<p><b>Alternative:</b> e<sup>x</sup> = 10<sup>0.434x</sup> — convert, then use your powers-of-ten\n" +
-        "skill. Also handy: e<sup>0.693</sup> = 2, e<sup>1.099</sup> = 3, e<sup>2.303</sup> = 10.</p>\n",
+        "<p>Every value here comes from a few anchors.</p>\n" +
+        "<h3>Anchors</h3>\n" +
+        "<p>Know these by heart.</p>\n" +
+        "<ex>e ≈ 2.718<br>" +
+        "e<sup>2</sup> ≈ 7.389<br>" +
+        "e<sup>3</sup> ≈ 20.09<br>" +
+        "e<sup>4</sup> ≈ 54.6<br>" +
+        "e<sup>5</sup> ≈ 148.4<br>" +
+        "<b>√e = e<sup>0.5</sup> ≈ 1.649</b></ex>\n" +
+        "<h3>Adding exponents</h3>\n" +
+        "<p>Exponents add, so multiply anchors. Negative exponents are reciprocals.</p>\n" +
+        "<ex>e<sup>3.5</sup> = e<sup>3</sup> × √e<br>" +
+        "20.09 × 1.65 ≈ <b>33.1</b></ex>\n" +
+        "<ex>e<sup>−2</sup> = 1/7.389 ≈ <b>0.135</b></ex>\n" +
+        "<h3>Small x</h3>\n" +
+        "<p>e<sup>x</sup> ≈ 1 + x + x²/2. Add x³/6 once |x| passes about 0.15.</p>\n" +
+        "<ex>e<sup>0.12</sup><br>" +
+        "1 + 0.12 + 0.0072 = <b>1.1272</b></ex>\n" +
+        "<ex>e<sup>−0.25</sup><br>" +
+        "1 − 0.25 + 0.03125 − 0.0026 ≈ <b>0.779</b></ex>\n" +
+        "<tip>Use it when x is close to 0.</tip>\n" +
+        "<h3>Any other x</h3>\n" +
+        "<p>Split x into the nearest half-integer plus a small remainder f, with |f| ≤ 0.25. Then multiply: e<sup>n</sup> × e<sup>f</sup>.</p>\n" +
+        "<ex>e<sup>2.3</sup> = e<sup>2.5</sup> × e<sup>−0.2</sup><br>" +
+        "e<sup>2.5</sup> = 7.389 × 1.649 ≈ 12.18<br>" +
+        "e<sup>−0.2</sup> ≈ 1 − 0.2 + 0.02 = 0.82<br>" +
+        "12.18 × 0.82 ≈ <b>9.99</b> (true 9.97)</ex>\n" +
+        "<tip>Use it when x is neither an anchor nor small.</tip>\n" +
+        "<h3>Convert to base 10</h3>\n" +
+        "<p>An alternative: e<sup>x</sup> = 10<sup>0.434x</sup>. Convert, then use your powers-of-ten skill.</p>\n" +
+        "<ex>e<sup>3</sup> = 10<sup>0.434 × 3</sup><br>" +
+        "0.434 × 3 = 1.302<br>" +
+        "10<sup>1.302</sup> = 10 × 10<sup>0.302</sup><br>" +
+        "10 × 2 ≈ <b>20</b> (true 20.09)</ex>\n" +
+        "<tip>Also handy: e<sup>0.693</sup> ≈ 2, e<sup>1.099</sup> ≈ 3, e<sup>2.303</sup> ≈ 10.</tip>\n",
     )
 
     private val L_POW = Lesson(
         "Powers",
         "\n" +
-        "<p><b>Integer powers — break into pieces you know.</b></p>\n" +
-        "<ul>\n" +
-        "<li>Change the base: 8<sup>5</sup> = 2<sup>15</sup> = 32 768; 5<sup>7</sup> = 10<sup>7</sup>/2<sup>7</sup> = 78 125.</li>\n" +
-        "<li>Square the half power: 7<sup>4</sup> = 49<sup>2</sup> = 2 401; 3<sup>6</sup> = 27<sup>2</sup> = 729.</li>\n" +
-        "<li>Squares near a round number: a<sup>2</sup> = (a − d)(a + d) + d<sup>2</sup>:\n" +
-        "47<sup>2</sup> = 50 × 44 + 9 = 2 209.</li>\n" +
-        "<li>Decimals: do the digits, then place the point: 1.1<sup>3</sup> → 1 331 → 1.331.</li>\n" +
-        "</ul>\n" +
-        "<p><b>Fractional exponents — root first, then power.</b> a<sup>p/q</sup> = (<sup>q</sup>√a)<sup>p</sup>:\n" +
-        "27<sup>4/3</sup> = 3<sup>4</sup> = 81; 16<sup>0.75</sup> = 2<sup>3</sup> = 8. Half-integers use √:\n" +
-        "2<sup>6.5</sup> = 64 × 1.414 ≈ 90.5; 10<sup>2.5</sup> ≈ 316.</p>\n" +
-        "<p><b>Arbitrary a<sup>b</sup> — go through logs.</b> a<sup>b</sup> = 10<sup>b·log a</sup>.</p>\n" +
-        "<p>Example: 3.7<sup>2.4</sup>. log 3.7 ≈ 0.602 − 0.434 × 0.3/4 = 0.569; × 2.4 = 1.366.\n" +
-        "10<sup>0.366</sup>: log 2.4 = 0.380 is 0.014 higher → 2.4 × (1 − 0.014/0.434) ≈ 2.32 → <b>23.2</b>\n" +
-        "(true 23.1). Keep three decimals in the log: the multiplication by b magnifies its error.</p>\n",
+        "<p>Break a power into pieces you know.</p>\n" +
+        "<h3>Change the base</h3>\n" +
+        "<p>Rewrite the base as a power of 2, or write 5 as 10 over 2.</p>\n" +
+        "<ex>8<sup>5</sup> = 2<sup>15</sup> = <b>32 768</b></ex>\n" +
+        "<ex>5<sup>7</sup> = 10<sup>7</sup> ÷ 2<sup>7</sup><br>" +
+        "10 000 000 ÷ 128 = <b>78 125</b></ex>\n" +
+        "<tip>Use it when the base is a power of 2, or is 5.</tip>\n" +
+        "<h3>Square the half power</h3>\n" +
+        "<p>For an even exponent, find the power at half the exponent and square it.</p>\n" +
+        "<ex>7<sup>4</sup> = 49<sup>2</sup> = <b>2 401</b><br>" +
+        "3<sup>6</sup> = 27<sup>2</sup> = <b>729</b></ex>\n" +
+        "<h3>Squares near a round number</h3>\n" +
+        "<p>a<sup>2</sup> = (a − d)(a + d) + d<sup>2</sup>. Pick d so that one factor is round.</p>\n" +
+        "<ex>47<sup>2</sup> with d of 3<br>" +
+        "47<sup>2</sup> = 50 × 44 + 9<br>" +
+        "50 × 44 = 2 200<br>" +
+        "2 200 + 9 = <b>2 209</b></ex>\n" +
+        "<tip>Use it for two-digit squares.</tip>\n" +
+        "<h3>Decimals</h3>\n" +
+        "<p>Do the digits, then place the point.</p>\n" +
+        "<ex>1.1<sup>3</sup><br>" +
+        "11<sup>3</sup> = 1 331<br>" +
+        "Three decimal places → <b>1.331</b></ex>\n" +
+        "<h3>Fractional exponents</h3>\n" +
+        "<p>Root first, then power: a<sup>p/q</sup> = (<sup>q</sup>√a)<sup>p</sup>.</p>\n" +
+        "<ex>27<sup>4/3</sup> = (∛27)<sup>4</sup><br>" +
+        "∛27 = 3<br>" +
+        "3<sup>4</sup> = <b>81</b></ex>\n" +
+        "<ex>16<sup>0.75</sup> = 16<sup>3/4</sup> = (<sup>4</sup>√16)<sup>3</sup><br>" +
+        "<sup>4</sup>√16 = 2<br>" +
+        "2<sup>3</sup> = <b>8</b></ex>\n" +
+        "<h3>Half-integer exponents</h3>\n" +
+        "<p>Split off one √ and multiply.</p>\n" +
+        "<ex>2<sup>6.5</sup> = 2<sup>6</sup> × √2<br>" +
+        "64 × 1.414 ≈ <b>90.5</b></ex>\n" +
+        "<ex>10<sup>2.5</sup> = 10<sup>2</sup> × √10<br>" +
+        "100 × 3.162 ≈ <b>316</b></ex>\n" +
+        "<h3>Any a<sup>b</sup>: go through logs</h3>\n" +
+        "<p>a<sup>b</sup> = 10<sup>b·log a</sup>. Find the log, multiply by b, then turn the result back into a number.</p>\n" +
+        "<ex>3.7<sup>2.4</sup>, with log 4 ≈ 0.602<br>" +
+        "log 3.7 ≈ 0.602 − 0.434 × 0.3/4 ≈ 0.569<br>" +
+        "0.569 × 2.4 ≈ 1.366<br>" +
+        "10<sup>0.366</sup>: log 2.4 ≈ 0.380, which is 0.014 higher<br>" +
+        "2.4 × (1 − 0.014/0.434) ≈ 2.32<br>" +
+        "2.32 × 10 = <b>23.2</b> (true 23.1)</ex>\n" +
+        "<tip>Keep three decimals in the log: the multiplication by b magnifies its error.</tip>\n",
     )
 
     private val L_ROOT = Lesson(
         "Roots",
         "\n" +
-        "<p><b>Square roots: √(n² + d) ≈ n + d/2n.</b> Find the nearest square, divide the leftover by\n" +
-        "twice its root. √52 = √(49 + 3) ≈ 7 + 3/14 ≈ 7.21 (true 7.211). Going down works too:\n" +
-        "√60 = √(64 − 4) ≈ 8 − 4/16 = 7.75 (true 7.746). It's the tangent line of √x, so it always\n" +
-        "slightly overshoots.</p>\n" +
-        "<p><b>Big or small numbers: pair the exponent first.</b> Write x = M × 10<sup>even</sup> with\n" +
-        "M between 10 and 1000, then √x = √M × 10<sup>half</sup>.</p>\n" +
-        "<ul>\n" +
-        "<li>√52 000 = √520 × 10<sup>1</sup>; √520 ≈ 23 − 9/46 ≈ 22.8 → 228.</li>\n" +
-        "<li>√0.003 = √30 × 10<sup>−2</sup> ≈ 5.48 × 0.01 = 0.0548.</li>\n" +
-        "</ul>\n" +
-        "<p><b>Cube roots: ∛(n³ + d) ≈ n + d/3n²</b>, grouping the exponent in threes.\n" +
-        "∛70 = ∛(64 + 6) ≈ 4 + 6/48 = 4.125 (true 4.121); ∛0.07 = ∛70 × 10<sup>−1</sup> ≈ 0.412.</p>\n" +
-        "<p><b>Higher roots: use logs.</b> <sup>n</sup>√x = 10<sup>(log x)/n</sup>.\n" +
-        "<sup>4</sup>√50: log 50 = 1.699; ÷ 4 = 0.425 → 10<sup>0.425</sup>: log 2.7 = 0.431, a hair above →\n" +
-        "≈ 2.66 (true 2.659).</p>\n",
+        "<h3>Square roots</h3>\n" +
+        "<p>√(n² + d) ≈ n + d/2n. Find the nearest square, then divide the leftover by twice its root.</p>\n" +
+        "<ex>√52 = √(49 + 3)<br>" +
+        "7 + 3/14 ≈ <b>7.21</b> (true 7.211)</ex>\n" +
+        "<p>Going down works too.</p>\n" +
+        "<ex>√60 = √(64 − 4)<br>" +
+        "8 − 4/16 = <b>7.75</b> (true 7.746)</ex>\n" +
+        "<tip>It's the tangent line of √x, so it always slightly overshoots.</tip>\n" +
+        "<h3>Big or small numbers</h3>\n" +
+        "<p>Pair the exponent first. Write x = M × 10<sup>even</sup> with M between 10 and 1000, then √x = √M × 10<sup>half</sup>.</p>\n" +
+        "<ex>√52 000 = √520 × 10<sup>1</sup><br>" +
+        "√520 ≈ 23 − 9/46 ≈ 22.8<br>" +
+        "22.8 × 10 = <b>228</b></ex>\n" +
+        "<ex>√0.003 = √30 × 10<sup>−2</sup><br>" +
+        "√30 ≈ 5.48<br>" +
+        "5.48 × 0.01 = <b>0.0548</b></ex>\n" +
+        "<h3>Cube roots</h3>\n" +
+        "<p>∛(n³ + d) ≈ n + d/3n². Group the exponent in threes.</p>\n" +
+        "<ex>∛70 = ∛(64 + 6)<br>" +
+        "4 + 6/48 = <b>4.125</b> (true 4.121)</ex>\n" +
+        "<ex>∛0.07 = ∛70 × 10<sup>−1</sup> ≈ <b>0.412</b></ex>\n" +
+        "<h3>Higher roots</h3>\n" +
+        "<p>Use logs: <sup>n</sup>√x = 10<sup>(log x)/n</sup>.</p>\n" +
+        "<ex><sup>4</sup>√50<br>" +
+        "log 50 ≈ 1.699<br>" +
+        "1.699 ÷ 4 ≈ 0.425<br>" +
+        "10<sup>0.425</sup>: log 2.7 ≈ 0.431, a hair above<br>" +
+        "So <b>≈ 2.66</b> (true 2.659)</ex>\n" +
+        "<tip>Use it for fourth roots and above.</tip>\n",
     )
 
     private val L_GROWTH = Lesson(
         "Growth & rule of 72",
         "\n" +
-        "<p><b>Why 72?</b> Growing r per period doubles when n · ln(1 + r) = ln 2 = 0.693. For small r,\n" +
-        "ln(1 + r) ≈ r, giving n ≈ 69.3/r% — but ln(1 + r) is a bit less than r, so the true number is a\n" +
-        "bit larger. 72 corrects for that around 8 %, and it divides nicely by 2, 3, 4, 6, 8, 9, 12.\n" +
-        "Best all-round: <b>69.3/r + 0.35</b>.</p>\n" +
-        "<ul><li>6 %: 72/6 = 12 periods (true 11.9). 1 %: 69.3 + 0.35 ≈ 69.7. 25 %: 2.77 + 0.35 = 3.12.</li></ul>\n" +
-        "<p><b>Growth factors: (1 + r)<sup>n</sup> = e<sup>n·ln(1 + r)</sup>,</b> with\n" +
-        "ln(1 + r) ≈ r − r²/2 (+ r³/3 for long horizons). Then find e<sup>y</sup> from the ln anchors:\n" +
-        "ln 2 = 0.693, ln 3 = 1.099, ln 5 = 1.609, ln 10 = 2.303, e = e<sup>1</sup>.</p>\n" +
-        "<p>Example: 1.06<sup>12</sup>. ln 1.06 ≈ 0.06 − 0.0018 = 0.0582; × 12 = 0.698 ≈ ln 2 + 0.005 →\n" +
-        "2 × 1.005 ≈ <b>2.01</b> (true 2.012).</p>\n" +
-        "<p><b>Decay:</b> −ln(1 − q) ≈ q + q²/2, so half-life ≈ 69.3/q − 0.35 (10 %/period: ≈ 6.6).</p>\n" +
-        "<p><b>Required rate:</b> to grow F× in N years, the continuous rate is ln F / N; the annual rate is\n" +
-        "e<sup>g</sup> − 1 ≈ g + g²/2. Triple in 20 years: 1.099/20 = 0.055 → 5.65 %.</p>\n",
+        "<h3>Why 72?</h3>\n" +
+        "<p>Growing r per period doubles when n · ln(1 + r) = ln 2 ≈ 0.693.</p>\n" +
+        "<p>For small r, ln(1 + r) ≈ r, giving n ≈ 69.3/r, with r in percent. But ln(1 + r) is a bit less than r, so the true number is a bit larger.</p>\n" +
+        "<p>72 corrects for that around 8%, and it divides nicely by 2, 3, 4, 6, 8, 9 and 12.</p>\n" +
+        "<ex>6%: 72/6 = <b>12</b> periods (true 11.9)</ex>\n" +
+        "<tip>Reach for 72 when r divides it nicely.</tip>\n" +
+        "<h3>Best all-round</h3>\n" +
+        "<p>Use <b>69.3/r + 0.35</b>, with r in percent.</p>\n" +
+        "<ex>1%: 69.3 + 0.35 ≈ <b>69.7</b></ex>\n" +
+        "<ex>25%: 69.3/25 ≈ 2.77<br>" +
+        "2.77 + 0.35 = <b>3.12</b></ex>\n" +
+        "<h3>Growth factors</h3>\n" +
+        "<p>(1 + r)<sup>n</sup> = e<sup>n·ln(1 + r)</sup>, with ln(1 + r) ≈ r − r²/2. Add r³/3 for long horizons.</p>\n" +
+        "<p>Then find e<sup>y</sup> from the ln anchors: ln 2 ≈ 0.693, ln 3 ≈ 1.099, ln 5 ≈ 1.609, ln 10 ≈ 2.303, and e<sup>1</sup> = e.</p>\n" +
+        "<ex>1.06<sup>12</sup><br>" +
+        "ln 1.06 ≈ 0.06 − 0.0018 = 0.0582<br>" +
+        "0.0582 × 12 ≈ 0.698<br>" +
+        "0.698 ≈ ln 2 + 0.005<br>" +
+        "2 × 1.005 ≈ <b>2.01</b> (true 2.012)</ex>\n" +
+        "<h3>Decay</h3>\n" +
+        "<p>−ln(1 − q) ≈ q + q²/2, so half-life ≈ 69.3/q − 0.35, with q in percent.</p>\n" +
+        "<ex>10% per period<br>" +
+        "69.3 ÷ 10 = 6.93<br>" +
+        "6.93 − 0.35 = 6.58<br>" +
+        "Half-life <b>≈ 6.6</b></ex>\n" +
+        "<h3>Required rate</h3>\n" +
+        "<p>To grow F× in N years, the continuous rate is g = ln F / N. The annual rate is e<sup>g</sup> − 1 ≈ g + g²/2.</p>\n" +
+        "<ex>Triple in 20 years, with ln 3 ≈ 1.099<br>" +
+        "g = 1.099 ÷ 20 ≈ 0.055<br>" +
+        "g²/2 ≈ 0.0015<br>" +
+        "0.055 + 0.0015 = 0.0565<br>" +
+        "Annual rate <b>≈ 5.65%</b></ex>\n",
     )
 
     override val SKILLS: List<Skill> = listOf(

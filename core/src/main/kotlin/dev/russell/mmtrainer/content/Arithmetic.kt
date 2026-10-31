@@ -567,105 +567,175 @@ object Arithmetic : ContentModule {
 
     private val ADD_LESSON = Lesson("Addition",
         "\n" +
-        "<p><b>Add left to right.</b> School taught you to start with the units, but in your head you\n" +
-        "want the big part of the answer first — it's what you'd say out loud, and you never have to\n" +
-        "reverse digits. Keep the first number whole and add the second one a place at a time:</p>\n" +
-        "<p>586 + 247: 586 + 200 = <b>786</b>, + 40 = <b>826</b>, + 7 = <b>833</b>.</p>\n" +
-        "<p>For 4-digit numbers, add the top two digits as one chunk, then the last two:\n" +
-        "4 735 + 2 869: 4 735 + 2 800 = 7 535, + 69 = <b>7 604</b>.</p>\n" +
-        "<p><b>Round and compensate.</b> When an addend sits just under a round number, add the round\n" +
-        "number and take back the difference: 586 + 298 = 586 + 300 − 2 = <b>884</b>.\n" +
-        "47 + 39 = 47 + 40 − 1 = <b>86</b>.</p>\n" +
-        "<p><b>Three numbers: column sums.</b> Add all the hundreds, all the tens, all the units, then\n" +
-        "combine: 347 + 586 + 219 → hundreds 10 (1 000), tens 13 (130), units 22 → <b>1 152</b>.</p>\n" +
-        "<p>Tips: say the running total to yourself after each step, and practise until the\n" +
-        "2-digit + 1-digit steps (826 + 7) are automatic — that's where the time goes.</p>\n")
+        "<h3>Add left to right</h3>\n" +
+        "<p>Keep the first number whole and add the second a place at a time. The big part of the\n" +
+        "answer comes first, which is what you'd say aloud, and you never have to reverse\n" +
+        "digits.</p>\n" +
+        "<ex>586 + 247<br>586 + 200 = 786<br>786 + 40 = 826<br>826 + 7 = <b>833</b></ex>\n" +
+        "<tip>Say the running total to yourself after each step.</tip>\n" +
+        "<p>For 4-digit numbers, add the top two digits as one chunk, then the last two.</p>\n" +
+        "<ex>4 735 + 2 869<br>4 735 + 2 800 = 7 535<br>7 535 + 69 = <b>7 604</b></ex>\n" +
+        "<h3>Round and compensate</h3>\n" +
+        "<p>When an addend sits just under a round number, add the round number and take back the\n" +
+        "difference.</p>\n" +
+        "<ex>586 + 298<br>586 + 300 = 886<br>886 − 2 = <b>884</b></ex>\n" +
+        "<ex>47 + 39<br>47 + 40 = 87<br>87 − 1 = <b>86</b></ex>\n" +
+        "<h3>Three numbers: column sums</h3>\n" +
+        "<p>Add all the hundreds, all the tens and all the units, then combine.</p>\n" +
+        "<ex>347 + 586 + 219<br>Hundreds: 3 + 5 + 2 = 10, so 1 000<br>" +
+        "Tens: 4 + 8 + 1 = 13, so 130<br>Units: 7 + 6 + 9 = 22<br>" +
+        "1 000 + 130 + 22 = <b>1 152</b></ex>\n" +
+        "<tip>Practise until adding one digit to a running total, like 826 + 7, is automatic.\n" +
+        "That's where the time goes.</tip>\n")
 
     private val SUB_LESSON = Lesson("Subtraction",
         "\n" +
-        "<p><b>Left to right.</b> Take the subtrahend off a piece at a time, biggest piece first:\n" +
-        "834 − 267: 834 − 200 = 634, − 60 = 574, − 7 = <b>567</b>.</p>\n" +
-        "<p><b>Compensation.</b> If you're subtracting something just under a round number, subtract\n" +
-        "the round number and give the difference back: 724 − 298 = 724 − 300 + 2 = <b>426</b>.\n" +
-        "83 − 47 = 83 − 50 + 3 = <b>36</b>.</p>\n" +
-        "<p><b>Count up (the cashier's method).</b> When the numbers are close or straddle a round\n" +
-        "number, find the gap by adding up from the smaller one: 612 − 487: 487 → 500 is 13,\n" +
-        "500 → 612 is 112, so the answer is <b>125</b>. For 4-digit numbers, hop to the next\n" +
-        "thousand: 7 352 − 2 868: 2 868 → 3 000 is 132, 3 000 → 7 352 is 4 352 → <b>4 484</b>.</p>\n" +
-        "<p><b>Complements from 1 000 / 10 000.</b> \"All from 9, the last from 10\":\n" +
-        "1 000 − 387 → 9−3, 9−8, 10−7 → <b>613</b>. 10 000 − 4 736 → <b>5 264</b>. This is how you\n" +
-        "make change, and it's the engine behind counting up (2 868 → 3 000 is 1 000 − 868 = 132).</p>\n" +
-        "<p>Pick the method that makes every step a single easy move — with practice you'll see it\n" +
-        "instantly.</p>\n")
+        "<p>Pick the method that makes every step a single easy move. With practice you'll see it\n" +
+        "instantly.</p>\n" +
+        "<h3>Left to right</h3>\n" +
+        "<p>Take the second number off a piece at a time, biggest piece first.</p>\n" +
+        "<ex>834 − 267<br>834 − 200 = 634<br>634 − 60 = 574<br>574 − 7 = <b>567</b></ex>\n" +
+        "<h3>Compensation</h3>\n" +
+        "<p>If you're subtracting something just under a round number, subtract the round number\n" +
+        "and give the difference back.</p>\n" +
+        "<ex>724 − 298<br>724 − 300 = 424<br>424 + 2 = <b>426</b></ex>\n" +
+        "<ex>83 − 47<br>83 − 50 = 33<br>33 + 3 = <b>36</b></ex>\n" +
+        "<h3>Count up (the cashier's method)</h3>\n" +
+        "<p>When the numbers are close or straddle a round number, find the gap by adding up from\n" +
+        "the smaller one.</p>\n" +
+        "<ex>612 − 487<br>487 → 500 is 13<br>500 → 612 is 112<br>13 + 112 = <b>125</b></ex>\n" +
+        "<p>For 4-digit numbers, hop to the next thousand.</p>\n" +
+        "<ex>7 352 − 2 868<br>2 868 → 3 000 is 132<br>3 000 → 7 352 is 4 352<br>" +
+        "132 + 4 352 = <b>4 484</b></ex>\n" +
+        "<h3>Complements from 1 000 and 10 000</h3>\n" +
+        "<p>\"All from 9, the last from 10\": take each digit from 9, and the last non-zero digit from 10.\n" +
+        "Trailing zeros stay zero.\n" +
+        "This is how you make change.</p>\n" +
+        "<ex>1 000 − 387<br>9 − 3 = 6<br>9 − 8 = 1<br>10 − 7 = 3<br>Answer: <b>613</b></ex>\n" +
+        "<ex>10 000 − 4 736<br>9 − 4 = 5<br>9 − 7 = 2<br>9 − 3 = 6<br>10 − 6 = 4<br>" +
+        "Answer: <b>5 264</b></ex>\n" +
+        "<tip>This is the engine behind counting up: 2 868 → 3 000 is 1 000 − 868 = 132.</tip>\n")
 
     private val MUL1_LESSON = Lesson("Multiplying by one digit",
         "\n" +
-        "<p><b>Left-to-right partial products.</b> Multiply the biggest place first and keep a running\n" +
-        "total — you'll hold one number in your head instead of a column of carries:</p>\n" +
-        "<p>347 × 6: 300×6 = 1 800; 40×6 = 240 → 2 040; 7×6 = 42 → <b>2 082</b>.</p>\n" +
-        "<p>For 4-digit numbers, treat the last two digits as one chunk (you know 2-digit × 1-digit):\n" +
-        "4 736 × 7: 28 000 → + 4 900 = 32 900 → + 36×7 = 252 → <b>33 152</b>.</p>\n" +
-        "<p><b>Near-round numbers: overshoot and subtract.</b> 49 × 7 = 50×7 − 7 = 350 − 7 = <b>343</b>.\n" +
-        "398 × 6 = 400×6 − 2×6 = 2 400 − 12 = <b>2 388</b>.</p>\n" +
-        "<p><b>Decimals.</b> Drop the decimal point, multiply the integers, then put back as many\n" +
-        "decimal places as the factor had: 4.7 × 8 → 47 × 8 = 376 → <b>37.6</b>; 0.36 × 7 → 252 →\n" +
-        "<b>0.252</b>. Always sanity-check the size: 4.7 × 8 ≈ 5 × 8 = 40.</p>\n" +
-        "<p>The whole skill rests on instant single-digit times tables and quick additions like\n" +
-        "2 040 + 42 — if a step feels slow, that's the thing to drill.</p>\n")
+        "<h3>Left-to-right partial products</h3>\n" +
+        "<p>Multiply the biggest place first and keep a running total. You hold one number in\n" +
+        "your head instead of a column of carries.</p>\n" +
+        "<ex>347 × 6<br>300 × 6 = 1 800<br>40 × 6 = 240<br>1 800 + 240 = 2 040<br>7 × 6 = 42<br>" +
+        "2 040 + 42 = <b>2 082</b></ex>\n" +
+        "<p>For 4-digit numbers, treat the last two digits as one chunk, since you know 2-digit ×\n" +
+        "1-digit.</p>\n" +
+        "<ex>4 736 × 7<br>4 000 × 7 = 28 000<br>700 × 7 = 4 900<br>28 000 + 4 900 = 32 900<br>" +
+        "36 × 7 = 252<br>32 900 + 252 = <b>33 152</b></ex>\n" +
+        "<tip>The whole skill rests on instant single-digit times tables and quick additions like\n" +
+        "2 040 + 42. If a step feels slow, drill that step.</tip>\n" +
+        "<h3>Near-round numbers: overshoot and subtract</h3>\n" +
+        "<p>Multiply by the round number, then subtract the excess.</p>\n" +
+        "<ex>49 × 7<br>50 × 7 = 350<br>350 − 7 = <b>343</b></ex>\n" +
+        "<ex>398 × 6<br>400 × 6 = 2 400<br>2 × 6 = 12<br>2 400 − 12 = <b>2 388</b></ex>\n" +
+        "<h3>Decimals</h3>\n" +
+        "<p>Drop the decimal point and multiply the integers. Then put back as many decimal\n" +
+        "places as the factor had.</p>\n" +
+        "<ex>4.7 × 8<br>47 × 8 = 376<br>One decimal place: <b>37.6</b></ex>\n" +
+        "<ex>0.36 × 7<br>36 × 7 = 252<br>Two decimal places: <b>2.52</b></ex>\n" +
+        "<tip>Always sanity-check the size: 4.7 × 8 ≈ 5 × 8 = 40.</tip>\n")
 
     private val MUL2_LESSON = Lesson("Multiplying 2-digit numbers",
         "\n" +
-        "<p>There's no single best method — the skill is <b>spotting which trick the numbers want</b>.\n" +
-        "Check in this order:</p>\n" +
-        "<ul>\n" +
-        "<li><b>Symmetric around a round number → difference of squares.</b>\n" +
-        "47 × 53 = (50 − 3)(50 + 3) = 2 500 − 9 = <b>2 491</b>.</li>\n" +
-        "<li><b>A nice factor → factor it.</b> × 25 = × 100 ÷ 4: 48 × 25 = 12 × 100 = <b>1 200</b>.\n" +
-        "Ends in 5 × even → halve & double: 35 × 48 = 70 × 24 = <b>1 680</b>.</li>\n" +
-        "<li><b>Close to a round number → overshoot and correct.</b>\n" +
-        "47 × 59 = 47 × 60 − 47 = 2 820 − 47 = <b>2 773</b>.\n" +
-        "Near 100: 96 × 93 → 96 − 7 = 89 | 4 × 7 = 28 → <b>8 928</b>.</li>\n" +
-        "<li><b>Otherwise split one factor</b> (the one with the smaller units digit):\n" +
-        "47 × 63 = 47 × 60 + 47 × 3 = 2 820 + 141 = <b>2 961</b>.\n" +
-        "Criss-cross (tens×tens, cross terms, units×units) is the same idea written as a column.</li>\n" +
-        "</ul>\n" +
-        "<p><b>Specials:</b> × 11: spread the digits and drop their sum in the middle,\n" +
-        "47 × 11 → 4 (11) 7 → <b>517</b>. Teen × teen: 13 × 17 → (13 + 7) × 10 + 3 × 7 = <b>221</b>.</p>\n" +
-        "<p>For 3-digit × 2-digit, split the 2-digit factor: 347 × 26 = 6 940 + 2 082 = <b>9 022</b>.\n" +
-        "Memorize squares up to 30 or so — they make difference-of-squares instant.</p>\n")
+        "<p>No single method is best. The skill is spotting which trick the numbers want, so\n" +
+        "check them in this order.</p>\n" +
+        "<h3>1. Difference of squares</h3>\n" +
+        "<p>Use it when the numbers are symmetric around a round number.</p>\n" +
+        "<ex>47 × 53<br>(50 − 3)(50 + 3)<br>50² = 2 500<br>3² = 9<br>" +
+        "2 500 − 9 = <b>2 491</b></ex>\n" +
+        "<tip>Memorize squares up to 30 or so. They make this instant.</tip>\n" +
+        "<h3>2. Factor it</h3>\n" +
+        "<p>Look for a nice factor. × 25 is the same as × 100 ÷ 4.</p>\n" +
+        "<ex>48 × 25<br>48 ÷ 4 = 12<br>12 × 100 = <b>1 200</b></ex>\n" +
+        "<p>For a number ending in 5 × an even number, double the first and halve the second.</p>\n" +
+        "<ex>35 × 48<br>Double and halve: 70 × 24<br>70 × 24 = <b>1 680</b></ex>\n" +
+        "<h3>3. Overshoot and correct</h3>\n" +
+        "<p>Use it when a factor is close to a round number.</p>\n" +
+        "<ex>47 × 59<br>47 × 60 = 2 820<br>2 820 − 47 = <b>2 773</b></ex>\n" +
+        "<p>Near 100, take each number's gap from 100. Subtract one gap from the other number and\n" +
+        "multiply by 100, then add the product of the gaps.</p>\n" +
+        "<ex>96 × 93 (gaps 4 and 7)<br>96 − 7 = 89<br>89 × 100 = 8 900<br>4 × 7 = 28<br>" +
+        "8 900 + 28 = <b>8 928</b></ex>\n" +
+        "<h3>4. Split one factor</h3>\n" +
+        "<p>Otherwise, split the factor with the smaller units digit.</p>\n" +
+        "<ex>47 × 63<br>47 × 60 = 2 820<br>47 × 3 = 141<br>2 820 + 141 = <b>2 961</b></ex>\n" +
+        "<tip>Criss-cross (tens × tens, cross terms, units × units) is the same idea written as a\n" +
+        "column.</tip>\n" +
+        "<p>For 3-digit × 2-digit, split the 2-digit factor.</p>\n" +
+        "<ex>347 × 26<br>347 × 20 = 6 940<br>347 × 6 = 2 082<br>6 940 + 2 082 = <b>9 022</b></ex>\n" +
+        "<h3>Special: × 11</h3>\n" +
+        "<p>Spread the digits and drop their sum in the middle, carrying if the sum has two\n" +
+        "digits.</p>\n" +
+        "<ex>47 × 11<br>4 + 7 = 11<br>4 (11) 7<br>Carry the 1: <b>517</b></ex>\n" +
+        "<h3>Special: teen × teen</h3>\n" +
+        "<p>Add one number to the other's units and multiply by 10. Then add the product of the\n" +
+        "units.</p>\n" +
+        "<ex>13 × 17<br>13 + 7 = 20<br>20 × 10 = 200<br>3 × 7 = 21<br>200 + 21 = <b>221</b></ex>\n")
 
     private val SQUARE_LESSON = Lesson("Squaring",
         "\n" +
-        "<p><b>Ending in 5:</b> n5² = n × (n+1), followed by 25.\n" +
-        "65² → 6 × 7 = 42 → <b>4 225</b>. 345² → 34 × 35 = 1 190 → <b>119 025</b>.</p>\n" +
-        "<p><b>Near 50:</b> (50 + d)² = (25 + d) hundreds + d².\n" +
-        "47² → 25 − 3 = 22 → 2 200 + 9 = <b>2 209</b>. 56² → 31 → 3 100 + 36 = <b>3 136</b>.</p>\n" +
-        "<p><b>Near 100:</b> (100 + d)² = (100 + 2d) hundreds + d².\n" +
-        "97² → 97 − 3 = 94 → 9 400 + 9 = <b>9 409</b>. 104² → 108 → 10 800 + 16 = <b>10 816</b>.</p>\n" +
-        "<p><b>Anything else: go up and down by the same amount.</b> Because\n" +
-        "a² = (a − d)(a + d) + d², pick d so one factor is round:\n" +
-        "67² = 70 × 64 + 3² = 4 480 + 9 = <b>4 489</b>.\n" +
-        "For 3-digit numbers, round to the nearest hundred: 304² = 300 × 308 + 16 = <b>92 416</b>;\n" +
-        "497² = 500 × 494 + 9 = <b>247 009</b>; 347² = 300 × 394 + 47² = 118 200 + 2 209 =\n" +
-        "<b>120 409</b>.</p>\n" +
-        "<p>The 3-digit case needs a 2-digit square as a sub-step, so get the 2-digit squares fast first\n" +
-        "(and memorize 1²–25²). Hold the big product in your head while you work out d².</p>\n")
+        "<h3>Ending in 5</h3>\n" +
+        "<p>n5² = n × (n + 1), followed by 25.</p>\n" +
+        "<ex>65²<br>6 × 7 = 42<br>Follow with 25: <b>4 225</b></ex>\n" +
+        "<ex>345²<br>34 × 35 = 1 190<br>Follow with 25: <b>119 025</b></ex>\n" +
+        "<h3>Near 50</h3>\n" +
+        "<p>(50 + d)² = (25 + d) hundreds + d².</p>\n" +
+        "<ex>47² (d is −3)<br>25 − 3 = 22<br>2 200 + 9 = <b>2 209</b></ex>\n" +
+        "<ex>56² (d is 6)<br>25 + 6 = 31<br>3 100 + 36 = <b>3 136</b></ex>\n" +
+        "<h3>Near 100</h3>\n" +
+        "<p>(100 + d)² = (100 + 2d) hundreds + d². Since 100 + 2d is the number plus d, adjust\n" +
+        "the number itself.</p>\n" +
+        "<ex>97² (d is −3)<br>97 − 3 = 94<br>9 400 + 9 = <b>9 409</b></ex>\n" +
+        "<ex>104² (d is 4)<br>104 + 4 = 108<br>10 800 + 16 = <b>10 816</b></ex>\n" +
+        "<h3>Anything else: up and down</h3>\n" +
+        "<p>Go up and down by the same amount. Because a² = (a − d)(a + d) + d², pick d so one\n" +
+        "factor is round.</p>\n" +
+        "<ex>67² (d is 3)<br>70 × 64 = 4 480<br>3² = 9<br>4 480 + 9 = <b>4 489</b></ex>\n" +
+        "<p>For 3-digit numbers, round to the nearest hundred.</p>\n" +
+        "<ex>304² (d is 4)<br>300 × 308 = 92 400<br>4² = 16<br>92 400 + 16 = <b>92 416</b></ex>\n" +
+        "<ex>497² (d is 3)<br>500 × 494 = 247 000<br>3² = 9<br>247 000 + 9 = <b>247 009</b></ex>\n" +
+        "<ex>347² (d is 47)<br>300 × 394 = 118 200<br>47² = 2 209<br>" +
+        "118 200 + 2 209 = <b>120 409</b></ex>\n" +
+        "<tip>The 3-digit case needs a 2-digit square as a sub-step. Get 2-digit squares fast\n" +
+        "first, and memorize 1²–25².</tip>\n" +
+        "<tip>Hold the big product in your head while you work out d².</tip>\n")
 
     private val DIV_LESSON = Lesson("Division",
         "\n" +
-        "<p><b>Chunking.</b> Peel off a big, easy multiple of the divisor, then deal with what's left:\n" +
-        "432 ÷ 6 → 420 ÷ 6 = 70, 12 ÷ 6 = 2 → <b>72</b>. For 2-digit divisors, estimate the tens of the\n" +
-        "answer first: 1 035 ÷ 23 → 23 × 40 = 920, leaving 115 = 23 × 5 → <b>45</b>.</p>\n" +
-        "<p><b>Simplify first.</b> Divide both numbers by a common factor — the answer doesn't change:\n" +
-        "1 344 ÷ 48 = 672 ÷ 24 = 336 ÷ 12 = <b>28</b>.</p>\n" +
-        "<p><b>Friendly divisors:</b> ÷ 5 = × 2 ÷ 10 (435 ÷ 5 = 870 ÷ 10 = 87); ÷ 25 = × 4 ÷ 100;\n" +
-        "÷ 50 = × 2 ÷ 100.</p>\n" +
-        "<p><b>Non-exact answers.</b> Get the whole part by chunking, then turn the remainder into a\n" +
-        "decimal: 347 ÷ 23 → 23 × 15 = 345, remainder 2; 2/23 ≈ 0.087 → <b>15.1</b>. Knowing reciprocals\n" +
-        "helps a lot here: 1/7 = 0.1429, 1/8 = 0.125, 1/9 = 0.111, 1/11 = 0.0909, 1/12 = 0.0833,\n" +
-        "1/13 ≈ 0.0769, 1/17 ≈ 0.0588, 1/19 ≈ 0.0526 — so 5/17 ≈ 5 × 0.0588 = 0.294.</p>\n" +
-        "<p>If the dividend is smaller than the divisor, shift it: 17 ÷ 43 = (170 ÷ 43) ÷ 10 ≈\n" +
-        "3.95 ÷ 10 = <b>0.395</b>. Give 3 significant figures, rounded (not truncated).</p>\n")
+        "<h3>Chunking</h3>\n" +
+        "<p>Peel off a big, easy multiple of the divisor, then deal with what's left.</p>\n" +
+        "<ex>432 ÷ 6<br>420 ÷ 6 = 70<br>12 ÷ 6 = 2<br>70 + 2 = <b>72</b></ex>\n" +
+        "<p>For 2-digit divisors, estimate the tens of the answer first.</p>\n" +
+        "<ex>1 035 ÷ 23<br>23 × 40 = 920<br>1 035 − 920 = 115<br>23 × 5 = 115<br>" +
+        "40 + 5 = <b>45</b></ex>\n" +
+        "<h3>Simplify first</h3>\n" +
+        "<p>Divide both numbers by a common factor. The answer doesn't change.</p>\n" +
+        "<ex>1 344 ÷ 48<br>Halve both: 672 ÷ 24<br>Halve both: 336 ÷ 12<br>" +
+        "336 ÷ 12 = <b>28</b></ex>\n" +
+        "<h3>Friendly divisors</h3>\n" +
+        "<ul>\n" +
+        "<li>÷ 5: × 2, then ÷ 10</li>\n" +
+        "<li>÷ 25: × 4, then ÷ 100</li>\n" +
+        "<li>÷ 50: × 2, then ÷ 100</li>\n" +
+        "</ul>\n" +
+        "<ex>435 ÷ 5<br>435 × 2 = 870<br>870 ÷ 10 = <b>87</b></ex>\n" +
+        "<h3>Non-exact answers</h3>\n" +
+        "<p>Get the whole part by chunking, then turn the remainder into a decimal.</p>\n" +
+        "<ex>347 ÷ 23<br>23 × 15 = 345, remainder 2<br>2/23 ≈ 0.087<br>15 + 0.087 = 15.087<br>" +
+        "Rounded: <b>15.1</b></ex>\n" +
+        "<tip>Give 3 significant figures, rounded, not truncated.</tip>\n" +
+        "<p>Knowing reciprocals helps a lot here.</p>\n" +
+        "<ex>1/7 ≈ 0.1429<br>1/8 = 0.125<br>1/9 ≈ 0.111<br>1/11 ≈ 0.0909<br>1/12 ≈ 0.0833<br>" +
+        "1/13 ≈ 0.0769<br>1/17 ≈ 0.0588<br>1/19 ≈ 0.0526</ex>\n" +
+        "<ex>5/17 ≈ 5 × 0.0588 = <b>0.294</b></ex>\n" +
+        "<h3>Dividend smaller than divisor</h3>\n" +
+        "<p>Shift it: multiply the dividend by 10, divide, then divide the result by 10.</p>\n" +
+        "<ex>17 ÷ 43<br>170 ÷ 43 ≈ 3.95<br>3.95 ÷ 10 = <b>0.395</b></ex>\n")
 
     // ================================================================== skills
 
