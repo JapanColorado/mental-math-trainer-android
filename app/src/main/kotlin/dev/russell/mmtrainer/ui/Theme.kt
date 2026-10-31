@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
@@ -42,6 +41,8 @@ data class AppColors(
     val muted: Color,
     val accent: Color,
     val onAccent: Color,
+    val accentContainer: Color,
+    val onAccentContainer: Color,
     val good: Color,
     val bad: Color,
     val warn: Color,
@@ -64,6 +65,8 @@ private fun appColors(scheme: ColorScheme, dark: Boolean): AppColors {
         muted = scheme.onSurfaceVariant,
         accent = scheme.primary,
         onAccent = scheme.onPrimary,
+        accentContainer = scheme.primaryContainer,
+        onAccentContainer = scheme.onPrimaryContainer,
         good = good,
         bad = bad,
         warn = warn,
@@ -84,6 +87,8 @@ object Palette {
     val MUTED: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.muted
     val ACCENT: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.accent
     val ON_ACCENT: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.onAccent
+    val ACCENT_CONTAINER: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.accentContainer
+    val ON_ACCENT_CONTAINER: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.onAccentContainer
     val GOOD: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.good
     val BAD: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.bad
     val WARN: Color @Composable @ReadOnlyComposable get() = LocalAppColors.current.warn
@@ -95,6 +100,8 @@ object Palette {
 private val fallbackDark = darkColorScheme(
     primary = Color(0xFF6EA8FE),
     onPrimary = Color(0xFF15171C),
+    primaryContainer = Color(0xFF243656),
+    onPrimaryContainer = Color(0xFFD7E4FF),
     secondary = Color(0xFF4CC38A),
     onSecondary = Color(0xFF15171C),
     background = Color(0xFF15171C),
@@ -116,6 +123,8 @@ private val fallbackDark = darkColorScheme(
 private val fallbackLight = lightColorScheme(
     primary = Color(0xFF2F65C8),
     onPrimary = Color.White,
+    primaryContainer = Color(0xFFDCE6FB),
+    onPrimaryContainer = Color(0xFF12305F),
     secondary = Color(0xFF1B8A55),
     onSecondary = Color.White,
     background = Color(0xFFF7F8FB),
@@ -137,23 +146,31 @@ private val fallbackLight = lightColorScheme(
 /** Text styles; colors are read from the current theme, so these are composable getters. */
 object Type {
     val h1: TextStyle @Composable @ReadOnlyComposable
-        get() = TextStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Palette.TEXT)
+        get() = TextStyle(fontSize = 26.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold, color = Palette.TEXT)
     val h2: TextStyle @Composable @ReadOnlyComposable
-        get() = TextStyle(fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = Palette.TEXT)
+        get() = TextStyle(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = Palette.TEXT)
+    val title: TextStyle @Composable @ReadOnlyComposable
+        get() = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium, color = Palette.TEXT)
     val body: TextStyle @Composable @ReadOnlyComposable
         get() = TextStyle(fontSize = 16.sp, color = Palette.TEXT, lineHeight = 23.sp)
     val muted: TextStyle @Composable @ReadOnlyComposable
         get() = TextStyle(fontSize = 14.sp, color = Palette.MUTED, lineHeight = 19.sp)
+    val label: TextStyle @Composable @ReadOnlyComposable
+        get() = TextStyle(fontSize = 13.sp, color = Palette.MUTED, lineHeight = 17.sp, fontWeight = FontWeight.Medium)
     val bigStat: TextStyle @Composable @ReadOnlyComposable
-        get() = TextStyle(fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Palette.TEXT)
+        get() = TextStyle(fontSize = 26.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold, color = Palette.TEXT,
+            fontFeatureSettings = "tnum")
+    val hero: TextStyle @Composable @ReadOnlyComposable
+        get() = TextStyle(fontSize = 44.sp, lineHeight = 50.sp, fontWeight = FontWeight.Bold, color = Palette.TEXT,
+            fontFeatureSettings = "tnum")
     val prompt: TextStyle @Composable @ReadOnlyComposable
         get() = TextStyle(fontSize = 44.sp, fontWeight = FontWeight.Medium, color = Palette.TEXT, lineHeight = 54.sp)
     val answer: TextStyle @Composable @ReadOnlyComposable
-        get() = TextStyle(fontSize = 34.sp, fontWeight = FontWeight.Medium, color = Palette.TEXT)
+        get() = TextStyle(fontSize = 34.sp, fontWeight = FontWeight.Medium, color = Palette.TEXT, fontFeatureSettings = "tnum")
     val timer: TextStyle @Composable @ReadOnlyComposable
-        get() = TextStyle(fontSize = 16.sp, fontFamily = FontFamily.Monospace, color = Palette.MUTED)
+        get() = TextStyle(fontSize = 16.sp, color = Palette.MUTED, fontFeatureSettings = "tnum")
     val tag: TextStyle @Composable @ReadOnlyComposable
-        get() = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        get() = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold)
 }
 
 /**

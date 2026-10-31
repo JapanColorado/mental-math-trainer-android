@@ -2,6 +2,7 @@ package dev.russell.mmtrainer.ui
 
 import android.os.SystemClock
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -38,6 +39,7 @@ val StoreThread = Executors.newSingleThreadExecutor { r -> Thread(r, "store") }.
 private val DECIMAL_ONLY = setOf("s_frac", "d_recip")  // the prompt is a fraction, so typing a fraction back isn't an answer
 
 sealed interface Screen {
+    data object Onboarding : Screen
     data object Home : Screen
     data class LessonPage(val kicker: String, val title: String, val body: String, val button: String) : Screen
     data object Drill : Screen
@@ -45,26 +47,37 @@ sealed interface Screen {
     data object Progress : Screen
     data object Library : Screen
     data class Topic(val itemId: String) : Screen
-    data class Practice(val audio: Boolean) : Screen
+    data object Practice : Screen
     data object SettingsPage : Screen
 }
 
+/** The sections in the bottom navigation bar. Everything else opens on top of these. */
+val Screen.isTopLevel: Boolean
+    get() = this == Screen.Home || this == Screen.Practice || this == Screen.Library || this == Screen.Progress
+
 data class HomeData(
     val streak: Int,
+    val activity: List<Boolean>,       // the last 7 study days, oldest first
     val minutes: Int,
-    val lines: List<String>,
+    val headline: String,
+    val nextTopic: String?,            // rich text
     val sessionsToday: Int,
     val benchValue: String,
     val benchNote: String,
+    val benchTaken: Boolean,
     val benchStale: Boolean,
     val paceValue: String,
     val paceNote: String,
+    val paceOnTarget: Boolean,
     val topicsValue: String,
     val topicsNote: String,
 )
 
 /** Everything a topic row needs: name, kind and a status line. */
-data class TopicRow(val id: String, val name: String, val isSkill: Boolean, val status: String, val unlocked: Boolean)
+data class TopicRow(
+    val id: String, val name: String, val isSkill: Boolean, val status: String, val unlocked: Boolean,
+    val mastered: Boolean, val progress: Float,
+)
 
 data class TopicDetail(
     val row: TopicRow,
@@ -94,10 +107,10 @@ data class ProgressData(
 )
 
 /** Extra numbers the summary screen shows that aren't part of the core Summary. */
-data class SummaryExtras(val benchmarks: List<Benchmark>, val audio: Boolean)
+data class SummaryExtras(val benchmarks: List<Benchmark>, val audio: Boolean, val weakSpots: Boolean)
 
 val DURATIONS: List<Pair<String, Double?>> =
-    listOf("1-minute sprint" to 1.0, "5 minutes" to 5.0, "10 minutes" to 10.0, "Until I stop" to null)
+    listOf("1 min" to 1.0, "5 min" to 5.0, "10 min" to 10.0, "No limit" to null)
 
 /** "A", "A and B", "A, B and C". */
 private fun namesList(ids: List<String>): String {
@@ -110,8 +123,14 @@ fun orderedIds(): List<String> {
     return ids + (Content.SKILLS.keys + Content.DECKS.keys).filter { it !in ids }
 }
 
-class AppViewModel(private val store: Store, private val newSpeaker: () -> Speaker) : ViewModel() {
+class AppViewModel(
+    private val store: Store,
+    private val newSpeaker: () -> Speaker,
+) : ViewModel() {
     var screen by mutableStateOf<Screen>(Screen.Home)
+        private set
+    /** The first screen is known and loaded; the splash screen holds until then. */
+    var ready by mutableStateOf(false)
         private set
     var home by mutableStateOf<HomeData?>(null)
         private set
@@ -145,6 +164,8 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         private set
     private var autoJob: Job? = null
     private var inSession = false
+    private var goAgainAction: (() -> Unit)? = null
+    private var weakSession = false
 
     // audio practice: the problem is read aloud instead of shown. The clock starts as its last word is
     // said: not at the end of the speech, so typing during the last word doesn't make an answer instant.
@@ -172,10 +193,34 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         private set
     var practiceRows by mutableStateOf<List<Pair<String, List<TopicRow>>>?>(null)
         private set
+    /** Topics in the current weak-spot selection; null until loaded. */
+    var weakCount by mutableStateOf<Int?>(null)
+        private set
+    var practiceDuration by mutableIntStateOf(1)
+        private set
+    var practiceAudio by mutableStateOf(false)
+        private set
+    var practiceExcluded by mutableStateOf<Set<String>>(emptySet())
+        private set
 
     init {
         refreshSettings()
-        goHome()
+        io {
+            class Startup(val home: HomeData, val fresh: Boolean, val duration: Int, val audio: Boolean, val excluded: Set<String>)
+            val start = withContext(StoreThread) {
+                val fresh = !store.settingBool(Settings.ONBOARDED) && store.introduced().isEmpty() && store.benchmarks().isEmpty()
+                if (!fresh) store.setSetting(Settings.ONBOARDED, true)
+                Startup(loadHome(), fresh, store.settingInt(Settings.PRACTICE_DURATION).coerceIn(DURATIONS.indices),
+                    store.settingBool(Settings.PRACTICE_AUDIO),
+                    store.settingString(Settings.PRACTICE_EXCLUDED).split(',').filter { it.isNotEmpty() }.toSet())
+            }
+            home = start.home
+            practiceDuration = start.duration
+            practiceAudio = start.audio
+            practiceExcluded = start.excluded
+            if (start.fresh) screen = Screen.Onboarding
+            ready = true
+        }
     }
 
     private fun io(block: suspend () -> Unit) = viewModelScope.launch { block() }
@@ -205,9 +250,35 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         io { topic = withContext(StoreThread) { loadTopic(itemId) } }
     }
 
-    fun openPractice(audio: Boolean = false) {
-        screen = Screen.Practice(audio)
-        io { practiceRows = withContext(StoreThread) { loadLibrary(onlyUnlocked = true) } }
+    fun openPractice() {
+        screen = Screen.Practice
+        io {
+            withContext(StoreThread) { loadLibrary(onlyUnlocked = true) to store.weakSpots().size }.let { (rows, weak) ->
+                practiceRows = rows
+                weakCount = weak
+            }
+        }
+    }
+
+    /** The welcome flow is done; [then] picks where it leads. */
+    fun finishOnboarding(then: () -> Unit = ::goHome) {
+        io { withContext(StoreThread) { store.setSetting(Settings.ONBOARDED, true) } }
+        then()
+    }
+
+    fun choosePracticeDuration(index: Int) {
+        practiceDuration = index
+        io { withContext(StoreThread) { store.setSetting(Settings.PRACTICE_DURATION, index) } }
+    }
+
+    fun setPracticeMode(audio: Boolean) {
+        practiceAudio = audio
+        io { withContext(StoreThread) { store.setSetting(Settings.PRACTICE_AUDIO, audio) } }
+    }
+
+    fun choosePracticeExcluded(ids: Set<String>) {
+        practiceExcluded = ids
+        io { withContext(StoreThread) { store.setSetting(Settings.PRACTICE_EXCLUDED, ids.joinToString(",")) } }
     }
 
     fun openSettings() {
@@ -219,10 +290,11 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
     fun back(): Boolean {
         when (screen) {
             Screen.Home -> return false
+            Screen.Onboarding -> finishOnboarding()
             Screen.Drill -> confirmQuit = true
             is Screen.LessonPage -> if (inSession) finish() else goHome()
             is Screen.Topic -> openLibrary()
-            is Screen.Practice, Screen.SummaryPage, Screen.Progress, Screen.Library, Screen.SettingsPage -> goHome()
+            Screen.Practice, Screen.SummaryPage, Screen.Progress, Screen.Library, Screen.SettingsPage -> goHome()
         }
         return true
     }
@@ -233,60 +305,66 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
 
     private fun loadHome(): HomeData {
         val s = store
-        val streak = s.streak()
         val minutes = s.settingInt(Settings.SESSION_MINUTES)
         val intro = s.introduced()
-        val lines = mutableListOf<String>()
+        val headline: String
+        var nextTopic: String? = null
         if (intro.isEmpty()) {
-            lines += "Welcome! Each quick session mixes memorizing key facts, short lessons on mental " +
-                "techniques, and timed interleaved drills. Your first session starts with the basics " +
-                "and moves on quickly if you already know them."
-            if (s.benchmarks().isEmpty()) {
-                lines += "Tip: take the <b>Benchmark</b> first, so you can measure how much faster you get."
-            }
+            headline = "Your first session starts with the basics and moves on quickly if you already know them."
         } else {
             val dueCards = s.dueCards().size
             val dueSkills = intro.keys.count { Content.isSkill(it) && s.skillStatus(it).due }
-            lines += "$dueCards facts and $dueSkills skills due for review."
+            headline = when {
+                dueCards == 0 && dueSkills == 0 -> "You're all caught up. Another session keeps things sharp."
+                dueCards == 0 -> "${count(dueSkills, "skill")} due for review."
+                dueSkills == 0 -> "${count(dueCards, "fact")} due for review."
+                else -> "${count(dueCards, "fact")} and ${count(dueSkills, "skill")} due for review."
+            }
             val nxt = s.nextToIntroduce()
             val waiting = s.nextInOrder()
-            if (nxt != null && s.canIntroduce()) lines += "Next new topic: <b>${Content.nameOf(nxt)}</b>"
-            else if (nxt != null) lines += "Next new topic (once current ones settle): ${Content.nameOf(nxt)}"
-            else if (waiting != null) lines += "Next new topic: ${Content.nameOf(waiting)}, after you master " +
-                namesList(s.missingPrerequisites(waiting))
+            nextTopic = when {
+                nxt != null && s.canIntroduce() -> "Up next: <b>${Content.nameOf(nxt)}</b>"
+                nxt != null -> "Up next, once current topics settle: ${Content.nameOf(nxt)}"
+                waiting != null -> "Up next: ${Content.nameOf(waiting)}, after you master ${namesList(s.missingPrerequisites(waiting))}"
+                else -> null
+            }
         }
         val benches = s.benchmarks()
         var benchValue = "—"
-        var benchNote = "Take a 32-question baseline (~6 min)"
+        var benchNote = "Not taken yet"
         var stale = false
         if (benches.isNotEmpty()) {
             val last = benches.last()
             val first = benches.first()
             benchValue = fmtF(last.score, 0)
-            val days = (System.currentTimeMillis() / 1000.0 - last.startTs) / 86400
-            val note = mutableListOf<String>()
-            if (benches.size > 1 && first.score > 0) {
-                val change = (last.score / first.score - 1) * 100
-                note += "baseline ${fmtF(first.score, 0)} (${signed0(change)}%)"
+            stale = (System.currentTimeMillis() / 1000.0 - last.startTs) / 86400 >= 7
+            benchNote = when {
+                stale -> "Time to retake"
+                benches.size > 1 && first.score > 0 -> "${signed0((last.score / first.score - 1) * 100)}% since first"
+                else -> "Your baseline"
             }
-            if (days >= 7) stale = true
-            benchNote = note.joinToString(" · ").ifEmpty { "100 = all correct at fluent target speed" }
         }
         val pace = s.dailyPace()
-        val paceValue: String
-        val paceNote: String
-        if (pace.isNotEmpty()) {
-            val recent = pace.takeLast(7).map { it.pace }
-            paceValue = fmtF(recent.average(), 0)
-            paceNote = "first days: ${fmtF(pace.take(3).map { it.pace }.average(), 0)} · 100 = target speed"
-        } else {
-            paceValue = "—"
-            paceNote = "100 = answering at the fluent target time"
-        }
+        val recentPace = pace.takeLast(7).map { it.pace }.takeIf { it.isNotEmpty() }?.average()
         val mastered = intro.keys.count { Content.isSkill(it) && s.skillStatus(it).mastered }
         val total = Content.SKILLS.size + Content.DECKS.size
-        return HomeData(streak, minutes, lines, s.sessionsToday(), benchValue, benchNote, stale, paceValue, paceNote,
-            "${intro.size}/$total", "unlocked · $mastered skills mastered")
+        return HomeData(
+            streak = s.streak(),
+            activity = s.recentActivity(7),
+            minutes = minutes,
+            headline = headline,
+            nextTopic = nextTopic,
+            sessionsToday = s.sessionsToday(),
+            benchValue = benchValue,
+            benchNote = benchNote,
+            benchTaken = benches.isNotEmpty(),
+            benchStale = stale,
+            paceValue = recentPace?.let { fmtF(it, 0) + "%" } ?: "—",
+            paceNote = if (recentPace != null) "of target" else "No data yet",
+            paceOnTarget = recentPace != null && recentPace >= 100,
+            topicsValue = "${intro.size}/$total",
+            topicsNote = if (mastered > 0) "$mastered mastered" else "unlocked",
+        )
     }
 
     private fun statusText(itemId: String): String {
@@ -297,11 +375,20 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             return "Level ${st.level + 1}/${st.nLevels}"
         }
         val s = store.deckStats(itemId)
-        return "${s.seen}/${s.total} seen · ${s.mature} solid"
+        return "${s.seen}/${s.total} seen"
     }
 
-    private fun topicRow(itemId: String) = TopicRow(itemId, Content.nameOf(itemId), Content.isSkill(itemId),
-        statusText(itemId), store.isIntroduced(itemId))
+    private fun topicRow(itemId: String): TopicRow {
+        val unlocked = store.isIntroduced(itemId)
+        val skill = Content.isSkill(itemId)
+        val status = if (skill && unlocked) store.skillStatus(itemId) else null
+        val progress = when {
+            !unlocked -> 0f
+            status != null -> status.progress.toFloat()
+            else -> store.deckStats(itemId).let { if (it.total > 0) it.seen.toFloat() / it.total else 0f }
+        }
+        return TopicRow(itemId, Content.nameOf(itemId), skill, statusText(itemId), unlocked, status?.mastered == true, progress)
+    }
 
     private fun loadLibrary(onlyUnlocked: Boolean): List<Pair<String, List<TopicRow>>> {
         val intro = store.introduced()
@@ -320,7 +407,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         val row = topicRow(itemId)
         val obj = Content.get(itemId)
         val prereqs = store.prerequisites[itemId].orEmpty().takeIf { it.isNotEmpty() }?.let { ids ->
-            "Builds on: " + ids.joinToString(" · ") { id ->
+            "Builds on " + ids.joinToString(" · ") { id ->
                 if (store.prerequisiteMet(id)) "${Content.nameOf(id)} ✓" else "<b>${Content.nameOf(id)}</b> (not yet)"
             }
         }
@@ -328,12 +415,12 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             val skill = Content.SKILLS.getValue(itemId)
             val current = if (store.isIntroduced(itemId)) store.skillStatus(itemId).level else 0
             TopicDetail(row, obj.lesson,
-                skill.levels.mapIndexed { i, l -> "L${i + 1}: ${l.description} (target ${fmtTarget(l.targetSeconds)})" },
-                current, "${skill.levels.size} levels", prereqs)
+                skill.levels.mapIndexed { i, l -> "Level ${i + 1}: ${l.description} (target ${fmtTarget(l.targetSeconds)})" },
+                current, count(skill.levels.size, "level"), prereqs)
         } else {
             val s = store.deckStats(itemId)
             TopicDetail(row, obj.lesson, emptyList(), 0,
-                "${s.total} facts · ${s.seen} seen · ${s.mature} solid (interval ≥ 3 weeks) · ${s.due} due", prereqs)
+                "${count(s.total, "fact")} · ${s.seen} seen · ${s.mature} solid · ${s.due} due", prereqs)
         }
     }
 
@@ -345,7 +432,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             val st = s.skillStatus(sid)
             val skill = Content.SKILLS.getValue(sid)
             SkillRow(sid, skill.name, dev.russell.mmtrainer.content.TRACKS[skill.track] ?: skill.track, st,
-                if (st.mastered) "Mastered" else "${st.level + 1}/${st.nLevels}: ${skill.levels[st.level].description}")
+                if (st.mastered) "Mastered" else "Level ${st.level + 1} of ${st.nLevels}: ${skill.levels[st.level].description}")
         }
         val decks = orderedIds().filter { Content.isDeck(it) && it in intro }.map { did ->
             val d = Content.DECKS.getValue(did)
@@ -365,12 +452,12 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
     suspend fun skillHistory(skillId: String): List<Pair<String, List<Pair<Double, Double>>>> =
         withContext(StoreThread) {
             store.skillHistory(skillId).groupBy { it.level }.toSortedMap()
-                .map { (lvl, pts) -> "L${lvl + 1}" to pts.map { it.day to it.medianS } }
+                .map { (lvl, pts) -> "Level ${lvl + 1}" to pts.map { it.day to it.medianS } }
         }
 
     // ------------------------------------------------------------ settings
 
-    private fun refreshSettings() {
+    private fun refreshSettings() =
         io {
             settings = withContext(StoreThread) {
                 SettingsData(
@@ -382,7 +469,6 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
                 )
             }
         }
-    }
 
     fun saveSettings(d: SettingsData) {
         settings = d
@@ -421,6 +507,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
     }
 
     fun practiseTopic(itemId: String, minutes: Double?) {
+        if (inSession) return
         io {
             withContext(StoreThread) { store.introduce(itemId) }
             start(Mode.PRACTICE, listOf(itemId), minutes)
@@ -435,32 +522,64 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         if (ids.isNotEmpty()) start(Mode.PRACTICE, ids, minutes, audio)
     }
 
+    /** A session on whatever is weakest right now: a quick session's length, off the review schedule. */
+    fun startWeakSpots() {
+        if (inSession) return
+        io {
+            val (weak, minutes) = withContext(StoreThread) { store.weakSpots() to store.settingInt(Settings.SESSION_MINUTES) }
+            if (!weak.isEmpty) start(Mode.PRACTICE, weak.skills, minutes.toDouble(), focusCards = weak.cards, weak = true)
+        }
+    }
+
+    /** Whether the summary can offer the same kind of session again. */
+    val canGoAgain: Boolean get() = goAgainAction != null
+
+    fun goAgain() {
+        goAgainAction?.invoke()
+    }
+
     fun startBenchmark() {
+        if (inSession) return
+        inSession = true
+        goAgainAction = null
         io {
             session = withContext(StoreThread) { Session(store, Mode.BENCHMARK) }
-            inSession = true
             screen = Screen.LessonPage(
-                kicker = "BENCHMARK",
-                title = "Benchmark",
-                body = "<p>32 questions (two per skill) spanning every track, always at the same fixed difficulty — so the score is " +
-                    "comparable from week to week no matter what you've unlocked.</p>" +
-                    "<p><b>Score</b> = (sum of target times of the questions you got right) ÷ (total time taken) × 100. " +
-                    "Answering everything correctly at the fluent target pace scores 100; faster scores more.</p>" +
-                    "<p>Don't know how to do one yet? Press <b>Show</b> on a blank answer to skip it — that's expected at the " +
-                    "start and is exactly what the benchmark should show improving.</p>" +
-                    "<p>Take it now as your baseline, then about once a week.</p>",
+                kicker = "Benchmark",
+                title = "Measure your speed",
+                body = "<p>32 questions across every track, always at the same difficulty, so your score compares fairly " +
+                    "from week to week. It takes about 6 minutes.</p>" +
+                    "<h3>How it's scored</h3>" +
+                    "<p>Target times of the questions you got right, divided by the total time you took, × 100. " +
+                    "Every answer correct at target speed scores 100, and faster scores more.</p>" +
+                    "<h3>Stuck on one?</h3>" +
+                    "<p>Press <b>Show</b> on a blank answer to skip it. That's expected at the start, and it's " +
+                    "exactly what should improve.</p>" +
+                    "<tip>Take it now as your baseline, then about once a week.</tip>",
                 button = "Begin",
             )
         }
     }
 
-    private fun start(mode: Mode, itemIds: List<String>? = null, minutes: Double? = null, audio: Boolean = false) {
+    private fun start(
+        mode: Mode, itemIds: List<String>? = null, minutes: Double? = null, audio: Boolean = false,
+        focusCards: List<String> = emptyList(), weak: Boolean = false,
+    ) {
+        if (inSession) return  // a second tap while the first is still starting
+        inSession = true
+        weakSession = weak
+        goAgainAction = when {
+            mode == Mode.DAILY -> ::startDaily
+            weakSession -> ::startWeakSpots
+            else -> ({ start(mode, itemIds, minutes, audio) })
+        }
         this.audio = audio
         speechFailed = false
         if (audio && speaker == null) speaker = newSpeaker()  // started early: the engine takes a moment
         io {
-            session = withContext(StoreThread) { Session(store, mode, minutes = minutes, itemIds = itemIds, audio = audio) }
-            inSession = true
+            session = withContext(StoreThread) {
+                Session(store, mode, minutes = minutes, itemIds = itemIds, audio = audio, focusCards = focusCards)
+            }
             nextItem()
         }
     }
@@ -472,7 +591,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
 
     fun nextItem() {
         autoJob?.cancel()
-        val s = session ?: return goHome()
+        val s = session ?: return
         if (busy) return
         busy = true
         io {
@@ -482,7 +601,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             if (next.isLesson) {
                 speaker?.stop()
                 val lesson = next.lesson!!
-                screen = Screen.LessonPage(if (next.sourceId.startsWith("d_")) "NEW FACTS" else "NEW TECHNIQUE",
+                screen = Screen.LessonPage(if (next.sourceId.startsWith("d_")) "New facts" else "New technique",
                     lesson.title, lesson.body, "Start practising")
             } else {
                 item = next
@@ -523,6 +642,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
     // keypad -----------------------------------------------------------------
 
     fun key(k: String) {
+        if (screen != Screen.Drill) return  // a tap during the transition away from the drill
         if (result != null) {
             if (k == ENTER) advance()
             return
@@ -561,11 +681,11 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         val text = input
         val value = Answers.parse(text)
         if (text.isNotBlank() && value == null) {
-            warning = "Couldn't read that as a number — try e.g. 0.75, 3/4, 2.4e7"
+            warning = "That isn't a number. Try something like 0.75, 3/4 or 2.4e7."
             return
         }
         if ("/" in text && it.sourceId in DECIMAL_ONLY) {
-            warning = "Answer as a decimal, e.g. 0.143"
+            warning = "Answer as a decimal, like 0.143."
             return
         }
         val seconds = (SystemClock.elapsedRealtime() - shownAt) / 1000.0
@@ -576,7 +696,7 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
             busy = false
             result = r
             if (!(r.correct && !r.hinted)) {
-                wrongPulse++
+                if (r.response.isNotEmpty()) wrongPulse++  // typed and wrong, not a blank answer revealed
                 if (audio) speaker?.speak(Speech.speakable(equation(r.item.problem!!)))
             } else if (settings?.autoAdvance != false && r.promotedTo == null) {
                 val p = r.item.problem!!
@@ -611,9 +731,8 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         confirmQuit = false
         val s = session ?: return goHome()
         session = null
-        inSession = false
-        item = null
         val wasAudio = audio
+        val wasWeak = weakSession
         audio = false
         io {
             val (sum, benches) = withContext(StoreThread) { s.finish() to store.benchmarks() }
@@ -621,9 +740,11 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
                 goHome()
             } else {
                 summary = sum
-                summaryExtras = SummaryExtras(benches, wasAudio)
+                summaryExtras = SummaryExtras(benches, wasAudio, wasWeak)
                 screen = Screen.SummaryPage
             }
+            item = null
+            inSession = false
         }
     }
 
@@ -637,10 +758,12 @@ class AppViewModel(private val store: Store, private val newSpeaker: () -> Speak
         const val CLEAR = "\u0018"
         const val SHOW_DELAY_MS = 500L
 
-        fun factory(store: Store, newSpeaker: () -> Speaker) = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = AppViewModel(store, newSpeaker) as T
-        }
+        fun factory(store: Store, newSpeaker: () -> Speaker) =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    AppViewModel(store, newSpeaker) as T
+            }
     }
 }
 
