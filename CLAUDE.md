@@ -19,6 +19,10 @@ through pixi too, so it gets that environment.
   `pixi run run` does the same for the minified release build (debug-signed without `keystore.properties`).
 - `pixi run logs` shows filtered logcat.
 
+## Releases
+
+Every push to `main` that passes `.github/workflows/ci.yml` (the same checks as `pixi run check`) publishes a signed APK as a GitHub release tagged `v<versionName>`. Obtainium on the phone installs it. Pushes that touch only docs don't release. `versionCode` is the commit count and `versionName` is `<base>.<count>`: bump the base in `app/build.gradle.kts` by hand, never hard-code `versionCode`, and never rewrite `main`'s history. CI signs with the keystore in the repo secrets, which must stay the key the installed app was signed with (the workflow's `EXPECTED_CERT_SHA256` enforces this). The shared change → emulator → push loop is in `~/Projects/Android-Apps/CLAUDE.md`.
+
 ## Architecture
 
 - `:core` is plain Kotlin/JVM with no Android imports. All learning logic lives here, so it is

@@ -8,6 +8,8 @@ an optional daily reminder. Progress is local to the phone.
 
 ## Build and install
 
+Every push to `main` that passes CI publishes a signed APK on the [Releases page](https://github.com/JapanColorado/mental-math-trainer-android/releases). To install it and get updates automatically, add `https://github.com/JapanColorado/mental-math-trainer-android` as a GitHub source in [Obtainium](https://github.com/ImranR98/Obtainium).
+
 pixi supplies JDK 21 and `ANDROID_HOME`; the Gradle wrapper pins Gradle 8.11.1.
 
 ```sh

@@ -27,6 +27,7 @@ clean = { cmd = "./gradlew clean", description = "Delete all Gradle build output
 # Verification
 test = { cmd = "./gradlew :core:test", description = "Run the core JVM tests (content, store, session)" }
 lint = { cmd = "./gradlew lintDebug", description = "Run Android lint on the debug variant" }
+check = { cmd = "./gradlew lintDebug :core:test testDebugUnitTest --continue", description = "Everything CI checks before a release (lint + unit tests)" }
 
 # Device inspection
 logs = { cmd = "adb logcat -s MMTrainer:*", description = "Filtered logcat" }
